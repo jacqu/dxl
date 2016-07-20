@@ -1,6 +1,8 @@
 /*
  * DXL.C : merging all of the Dynamixel lib code into one file
  * 
+ * Author: Ryu Woon Jung (Leon)
+ * 
  * JG, 6/7/16
  */
 
