@@ -1,7 +1,9 @@
 /*
- * DXL.C : merging all of the Dynamixel lib code into one file
+ * dxl.c : merging all of the Dynamixel lib code into one file
  * 
  * Author: Ryu Woon Jung (Leon)
+ * 
+ * Compile with : gcc -Wall -o dxl dxl.c
  * 
  * JG, 6/7/16
  */
@@ -23,8 +25,6 @@
 
 #define True                						1
 #define False               						0
-
-#define LATENCY_TIMER   								1000  // msec (USB latency timer)
 
 ///////////////// for Protocol 1.0 Packet /////////////////
 #define TXPACKET_MAX_LEN    						(250)
@@ -74,6 +74,9 @@
 #define ERRBIT_ALERT_2            			128     // When the device has a problem, this bit is set to 1. Check "Device Status Check" value.
 
 /* Private macros */
+
+/* Get the number of elements in an array */
+#define NELEMS(x)  (sizeof(x) / sizeof((x)[0]))
 
 /* Macro for Control Table Value */
 #define DXL_MAKEWORD(a, b)  ((unsigned short)(((unsigned char)(((unsigned long)(a)) & 0xff)) | ((unsigned short)((unsigned char)(((unsigned long)(b)) & 0xff))) << 8))
@@ -198,6 +201,7 @@ typedef struct
 /* Global variables */
 
 static const int 												DEFAULT_BAUDRATE = 1000000;
+int 																		LATENCY_TIMER = 1000;  // msec (USB latency timer)
 
 int     																g_used_port_num;
 uint8_t    															*g_is_using;
@@ -337,12 +341,30 @@ int getBytesAvailableLinux(int port_num)
 
 int readPortLinux(int port_num, uint8_t *packet, int length)
 {
-  return read(portData[port_num].socket_fd, packet, length);
+	ssize_t ret;
+	
+  ret = read(portData[port_num].socket_fd, packet, length);
+  
+  if ( ret < 0 )	{
+		perror( "readPortLinux" );
+		ret = 0;
+	}
+	
+	return ret;
 }
 
 int writePortLinux(int port_num, uint8_t *packet, int length)
 {
-  return write(portData[port_num].socket_fd, packet, length);
+	ssize_t ret;
+	
+  ret = write(portData[port_num].socket_fd, packet, length);
+  
+  if ( ret < 0 )	{
+		perror( "writePortLinux" );
+		ret = 0;
+	}
+	
+	return ret;
 }
 
 void setPacketTimeoutLinux(int port_num, uint16_t packet_length)
@@ -3957,99 +3979,119 @@ int kbhit(void)
 }
 
 /*
+ *	dxl_scan : 	scan the serial bus for responding devices. Print
+ * 							a list of the devices that responded to ping.
+ * 	
+ * 	Parameters :
+ * 		device : name of the serial device (usually /dev/ttyUSB0)
+ * 
+ * 	Return value :
+ * 		0 : success
+ * 		negative value : error
+ * 	
+ */
+ 
+int dxl_scan_baudrates[] = {	9600,
+															19200,
+															57600,
+															115200,
+															200000,
+															250000,
+															400000,
+															500000,
+															1000000,
+															2000000,
+															2500000,
+															3000000,
+															4000000 };
+															
+
+int dxl_scan( char *device )	{
+	int 			port_num, i, j, k;
+	uint16_t	dxl_model_number;
+	int				old_latency_timer;
+	
+	// Reduce latency timer to minimum
+  old_latency_timer = LATENCY_TIMER;
+  LATENCY_TIMER = 10;
+	
+	// Get port number associated to port name
+	port_num = portHandler( device );
+	
+	// Initialize PacketHandler Structs
+  packetHandler( );
+  
+  // Open port
+  if ( !openPort( port_num ) )
+  {
+    fprintf( stderr, "dxl_scan: error while opening port %d.\n", port_num );
+    LATENCY_TIMER = old_latency_timer;
+		return -1;
+  }
+	
+	// Initialize progression
+	fprintf( stderr, "000%% > " );
+		
+	// Scan through the baudrates
+	for ( i = 0; i < NELEMS(dxl_scan_baudrates); i++ )	{
+		
+		// Set port baudrate
+		if ( !setBaudRate( port_num, dxl_scan_baudrates[i] ) )	{
+			fprintf( stderr, 	"dxl_scan: unable to set baudrate %d bps on port %d. Skipping.\n", 
+												dxl_scan_baudrates[i],
+												port_num );
+			continue;
+		}
+		
+		// Scan through the ids
+		for ( j = 0; j <= MAX_ID; j++ )	{
+			
+			// Display progression
+			fprintf( 	stderr, 
+								"\b\b\b\b\b\b\b%3d%% > ", 
+								(int)( 100 * ( i * ( MAX_ID + 1 ) + j ) / ( ( MAX_ID + 1 ) * NELEMS(dxl_scan_baudrates) ) ) );
+			
+			// Scan through the protocols
+			for ( k = 1; k<=2; k++ )	{
+			
+				dxl_model_number = pingGetModelNum( port_num, k, j );
+				
+				if ( dxl_model_number )	{
+					fprintf( 	stderr, 
+										"Model %d found as ID%d using protocol %d at %d bps.\n",
+										dxl_model_number,
+										j,
+										k,
+										dxl_scan_baudrates[i] );
+				}	
+			}
+		}
+	}
+	
+	fprintf( stderr, "\r100%% > Done.\n" );
+	
+	// Close port
+  closePort( port_num );
+  
+  // Reset latency timer to initial value
+  LATENCY_TIMER = old_latency_timer;
+
+	return 0;
+}
+
+
+
+/*
  * 
  * main
  * 
- * Protocol 2 ping example.
- * 
- * 1. Adapt PROTOCOL_VERSION, DXL_ID, BAUDRATE and DEVICENAME to your setup.
- * 2. Compile with : gcc -Wall dxl.c -o dxl -lrt
- * 3. Power your Dynamixel and connect the USB2Dynamixel dongle.
- * 4. Start the program with ./dxl
- * 5. Verify that the returned device number corresponds to your Dynamixel.
- * 
  */
- 
-// Protocol version
-#define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
-
-// Default setting
-#define DXL_ID                          1                   // Dynamixel ID: 1
-#define BAUDRATE                        1000000
-#define DEVICENAME                      "/dev/ttyUSB0"      // Check which port is being used on your controller
-                                                            // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0"
-// Number of times ping cmd should be issued                                                           
-#define NB_LOOP													100
 
 int main()
 {
-  // Initialize PortHandler Structs
-  // Set the port path
-  // Get methods and members of PortHandlerLinux or PortHandlerWindows
-  int port_num = portHandler(DEVICENAME);
-
-  // Initialize PacketHandler Structs
-  packetHandler();
-
-  int dxl_comm_result = COMM_TX_FAIL;             // Communication result
-
-  uint8_t dxl_error = 0;                          // Dynamixel error
-  uint16_t dxl_model_number;                      // Dynamixel model number
   
-  struct timespec before, after;
-  unsigned long long ping_delay;
-  int i;
-
-  // Open port
-  if (openPort(port_num))
-  {
-    printf("Succeeded to open the port!\n");
-  }
-  else
-  {
-    printf("Failed to open the port!\n");
-    printf("Press any key to terminate...\n");
-    getch();
-    return 0;
-  }
-
-  // Set port baudrate
-  if (setBaudRate(port_num, BAUDRATE))
-  {
-    printf("Succeeded to change the baudrate!\n");
-  }
-  else
-  {
-    printf("Failed to change the baudrate!\n");
-    printf("Press any key to terminate...\n");
-    getch();
-    return 0;
-  }
-	
-	for ( i = 0; i < NB_LOOP; i++ )	{
-		// Try to ping the Dynamixel
-		// Get Dynamixel model number
-		clock_gettime( CLOCK_MONOTONIC, &before );
-		dxl_model_number = pingGetModelNum(port_num, PROTOCOL_VERSION, DXL_ID);
-		clock_gettime( CLOCK_MONOTONIC, &after );
-		ping_delay = 	( after.tv_sec - before.tv_sec ) * 1000000 +
-						( after.tv_nsec - before.tv_nsec ) / 1000;
-						
-		if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
-		{
-			printTxRxResult(PROTOCOL_VERSION, dxl_comm_result);
-		}
-		else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
-		{
-			printRxPacketError(PROTOCOL_VERSION, dxl_error);
-		}
-
-		printf("[ID:%03d] ping Succeeded. Dynamixel model number : %d\n", DXL_ID, dxl_model_number);
-		printf("Ping delay: %llu us\n", ping_delay );
-	}
-
-  // Close port
-  closePort(port_num);
-
+	if ( dxl_scan( "/dev/ttyUSB0" ) )
+		fprintf( stderr, "dxl: dxl_scan returned an error.\n" );
+		
   return 0;
 }
