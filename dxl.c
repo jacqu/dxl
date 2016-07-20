@@ -3008,6 +3008,8 @@ void groupBulkReadClearParam(int group_num)
   packetData[port_num].data_write = 0;
 
   groupDataR[group_num].data_list_length = 0;
+  
+  groupDataR[group_num].is_param_changed = False;
 }
 
 void groupBulkReadTxPacket(int group_num)
@@ -3365,6 +3367,8 @@ void groupBulkWriteClearParam(int group_num)
   packetData[port_num].data_write = 0;
 
   groupDataW[group_num].data_list_length = 0;
+  
+  groupDataW[group_num].is_param_changed = False;
 }
 void groupBulkWriteTxPacket(int group_num)
 {
@@ -3532,6 +3536,8 @@ void groupSyncReadClearParam(int group_num)
   packetData[port_num].data_write = 0;
 
   groupDataSR[group_num].data_list_length = 0;
+  
+  groupDataSR[group_num].is_param_changed = False;
 }
 
 void groupSyncReadTxPacket(int group_num)
@@ -3875,6 +3881,8 @@ void groupSyncWriteClearParam(int group_num)
   packetData[port_num].data_write = 0;
 
   groupDataSW[group_num].data_list_length = 0;
+  
+  groupDataSW[group_num].is_param_changed = False;
 }
 
 void groupSyncWriteTxPacket(int group_num)
