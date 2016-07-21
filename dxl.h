@@ -1,5 +1,9 @@
 /* External defines */
 
+// Version
+#define DXL_VERSION_MAJOR								0
+#define DXL_VERSION_MINOR								1
+
 // Special IDs
 #define NOT_USED_ID         						0xFF		// 255
 #define BROADCAST_ID        						0xFE    // 254

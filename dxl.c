@@ -2,6 +2,7 @@
  * dxl.c : merging all of the Dynamixel lib code into one file
  * 
  * Author: Ryu Woon Jung (Leon)
+ * Modifications : Jacques Gangloff (jacques.gangloff@unistra.fr)
  * 
  * Compile with : gcc -Wall -o dxl dxl.c
  * 
@@ -25,6 +26,29 @@
 
 #define True                						1
 #define False               						0
+
+// Terminal escape codes
+#define TERM_RESET   										"\033[0m"								/* Reset */
+#define TERM_BRIGHT											"\033[1m"								/* Bright */
+#define TERM_DIM												"\033[2m"								/* Dim */
+#define TERM_UNDER											"\033[4m"								/* Underscore */
+#define TERM_REVERSE										"\033[7m"								/* Reverse */
+#define TERM_BLACK   										"\033[30m"      				/* Black */
+#define TERM_RED     										"\033[31m"      				/* Red */
+#define TERM_GREEN   										"\033[32m"      				/* Green */
+#define TERM_YELLOW  										"\033[33m"      				/* Yellow */
+#define TERM_BLUE    										"\033[34m"      				/* Blue */
+#define TERM_MAGENTA 										"\033[35m"      				/* Magenta */
+#define TERM_CYAN    										"\033[36m"      				/* Cyan */
+#define TERM_WHITE   										"\033[37m"      				/* White */
+#define TERM_BOLDBLACK   								"\033[1m\033[30m"      	/* Bold Black */
+#define TERM_BOLDRED     								"\033[1m\033[31m"      	/* Bold Red */
+#define TERM_BOLDGREEN   								"\033[1m\033[32m"      	/* Bold Green */
+#define TERM_BOLDYELLOW  								"\033[1m\033[33m"      	/* Bold Yellow */
+#define TERM_BOLDBLUE    								"\033[1m\033[34m"      	/* Bold Blue */
+#define TERM_BOLDMAGENTA 								"\033[1m\033[35m"      	/* Bold Magenta */
+#define TERM_BOLDCYAN    								"\033[1m\033[36m"      	/* Bold Cyan */
+#define TERM_BOLDWHITE   								"\033[1m\033[37m"      	/* Bold White */
 
 ///////////////// for Protocol 1.0 Packet /////////////////
 #define TXPACKET_MAX_LEN    						(250)
@@ -4089,19 +4113,49 @@ int dxl_scan( char *device )	{
 	return 0;
 }
 
-
-
 /*
  * 
  * main
  * 
  */
 
-int main()
+int main( int argc, char *argv[] )
 {
+  // Manage parameters
   
-	if ( dxl_scan( "/dev/ttyUSB0" ) )
-		fprintf( stderr, "dxl: dxl_scan returned an error.\n" );
+  if ( argc <= 1 )
+		goto display_help;
+	
+	// help command
+	
+	if ( !strcmp( argv[1], "help" ) )
+		goto display_help;
+	
+	// scan command
+	
+	if ( !strcmp( argv[1], "scan" ) )	{
+		if ( argc != 3 )
+			goto display_help;
+		if ( dxl_scan( argv[2] ) )	{
+			fprintf( stderr, "dxl: dxl_scan returned an error.\n" );
+			exit( EXIT_FAILURE );
+		}
+	}
+	
+	// Default action
 		
-  return 0;
+	display_help:
+	printf( "▶▶▶ dxl: a " TERM_UNDER "simple" TERM_RESET " command line interface to Dynamixel actuators ◀◀◀\n" );
+	printf( "Version %d.%d (jacques.gangloff@unistra.fr)\n", DXL_VERSION_MAJOR, DXL_VERSION_MINOR );
+	printf( "Usage: dxl command [parameters]\n" );
+	printf( "List of " TERM_BRIGHT "commands" TERM_RESET " and " TERM_DIM "parameters" TERM_RESET ":\n" );
+	// help
+	printf( TERM_BRIGHT "\thelp\n" TERM_RESET );
+	printf( "\t\tDisplay this help message.\n" );
+	// scan
+	printf( TERM_BRIGHT "\tscan" TERM_RESET TERM_DIM " portname\n" TERM_RESET );
+	printf( "\t\tScan every baudrates, IDs and protocols looking for responding devices.\n" );
+	printf( "\t\t" TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
+		
+  exit( EXIT_SUCCESS );
 }
