@@ -67,3 +67,134 @@ root@mbadebian:/home/jacques/Documents/develop/github/dxl# valgrind --track-orig
 ==8219== 
 ==8219== For counts of detected and suppressed errors, rerun with: -v
 ==8219== ERROR SUMMARY: 4057 errors from 4 contexts (suppressed: 0 from 0)
+
+pi@raspberrypi:~/develop/github/dxl $ valgrind --track-origins=yes --show-reachable=yes ./dxl
+==5893== Memcheck, a memory error detector
+==5893== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==5893== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==5893== Command: ./dxl
+==5893== 
+  0% > ==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x13A7C: txRxPacket1 (dxl.c:1378)
+==5893==    by 0x13DBB: pingGetModelNum1 (dxl.c:1411)
+==5893==    by 0x11F7F: pingGetModelNum (dxl.c:695)
+==5893==    by 0x228D3: dxl_scan (dxl.c:4057)
+==5893==    by 0x229D7: main (dxl.c:4093)
+==5893==  Uninitialised value was created by a heap allocation
+==5893==    at 0x48358A0: realloc (vg_replace_malloc.c:632)
+==5893==    by 0x13CDF: pingGetModelNum1 (dxl.c:1399)
+==5893==    by 0x11F7F: pingGetModelNum (dxl.c:695)
+==5893==    by 0x228D3: dxl_scan (dxl.c:4057)
+==5893==    by 0x229D7: main (dxl.c:4093)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x1809C: txRxPacket2 (dxl.c:2260)
+==5893==    by 0x18387: pingGetModelNum2 (dxl.c:2292)
+==5893==    by 0x11F97: pingGetModelNum (dxl.c:699)
+==5893==    by 0x228D3: dxl_scan (dxl.c:4057)
+==5893==    by 0x229D7: main (dxl.c:4093)
+==5893== 
+ 30% > ==5893== Warning: noted but unhandled ioctl 0x541e with no size/direction hints
+==5893==    This could cause spurious value errors to appear.
+==5893==    See README_MISSING_SYSCALL_OR_IOCTL for guidance on writing a proper wrapper.
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22A3C: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22B88: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Use of uninitialised value of size 4
+==5893==    at 0x22B88: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22A1C: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22A2C: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22A44: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22B04: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Use of uninitialised value of size 4
+==5893==    at 0x22B04: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x114F4: setCustomBaudrateLinux (dxl.c:453)
+==5893==    by 0x10E43: setBaudRateLinux (dxl.c:321)
+==5893==    by 0x11933: setBaudRate (dxl.c:531)
+==5893==    by 0x2281B: dxl_scan (dxl.c:4039)
+==5893==    by 0x229D7: main (dxl.c:4093)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x11520: setCustomBaudrateLinux (dxl.c:453)
+==5893==    by 0x10E43: setBaudRateLinux (dxl.c:321)
+==5893==    by 0x11933: setBaudRate (dxl.c:531)
+==5893==    by 0x2281B: dxl_scan (dxl.c:4039)
+==5893==    by 0x229D7: main (dxl.c:4093)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Warning: noted but unhandled ioctl 0x541f with no size/direction hints
+==5893==    This could cause spurious value errors to appear.
+==5893==    See README_MISSING_SYSCALL_OR_IOCTL for guidance on writing a proper wrapper.
+ 38% > ==5893== Warning: noted but unhandled ioctl 0x541e with no size/direction hints
+==5893==    This could cause spurious value errors to appear.
+==5893==    See README_MISSING_SYSCALL_OR_IOCTL for guidance on writing a proper wrapper.
+ 46% > ==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22B94: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Use of uninitialised value of size 4
+==5893==    at 0x22B94: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Conditional jump or move depends on uninitialised value(s)
+==5893==    at 0x22AF8: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+==5893== Use of uninitialised value of size 4
+==5893==    at 0x22AF8: __divsi3 (in /home/pi/develop/github/dxl/dxl)
+==5893==  Uninitialised value was created by a stack allocation
+==5893==    at 0x1141C: setCustomBaudrateLinux (dxl.c:440)
+==5893== 
+ 61% > Model 1030 found as ID1 using protocol 2 at 1000000 bps.
+100% > Done.
+==5893== 
+==5893== HEAP SUMMARY:
+==5893==     in use at exit: 120 bytes in 7 blocks
+==5893==   total heap usage: 16,453 allocs, 16,446 frees, 125,107 bytes allocated
+==5893== 
+==5893== LEAK SUMMARY:
+==5893==    definitely lost: 0 bytes in 0 blocks
+==5893==    indirectly lost: 0 bytes in 0 blocks
+==5893==      possibly lost: 0 bytes in 0 blocks
+==5893==    still reachable: 120 bytes in 7 blocks
+==5893==         suppressed: 0 bytes in 0 blocks
+==5893== Rerun with --leak-check=full to see details of leaked memory
+==5893== 
+==5893== For counts of detected and suppressed errors, rerun with: -v
+==5893== ERROR SUMMARY: 4084 errors from 16 contexts (suppressed: 0 from 0)
