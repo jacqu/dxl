@@ -4040,7 +4040,7 @@ int dxl_scan_baudrates[] = {	9600,
 															4000000 };
 															
 
-int dxl_scan( char *device )	{
+int dxl_scan( char *portname )	{
 	int 			port_num, i, j, k;
 	uint16_t	dxl_model_number;
 	int				old_latency_timer;
@@ -4050,7 +4050,7 @@ int dxl_scan( char *device )	{
   LATENCY_TIMER = 10;
 	
 	// Get port number associated to port name
-	port_num = portHandler( device );
+	port_num = portHandler( portname );
 	
 	// Initialize PacketHandler Structs
   packetHandler( );
@@ -4058,7 +4058,7 @@ int dxl_scan( char *device )	{
   // Open port
   if ( !openPort( port_num ) )
   {
-    fprintf( stderr, "dxl_scan: error while opening port %d.\n", port_num );
+    fprintf( stderr, "dxl_scan: error while opening port %s.\n", portname );
     LATENCY_TIMER = old_latency_timer;
 		return -1;
   }
@@ -4115,10 +4115,70 @@ int dxl_scan( char *device )	{
 
 /*
  * 
+ *	dxl_status: display the register values of the dynamixel actuator
+ * 
+ * 	Parameters :
+ * 		portname: 		name of the serial device (usually /dev/ttyUSB0)
+ * 		baudrate: 		baud rate of the serial communication
+ * 		devid:				ID of the targeted device
+ * 		proto: 				version of the protocol (1 or 2)
+ * 
+ *	Return value :
+ * 		0 : success
+ * 		negative value : error
+ * 
+ */
+int dxl_status( char *portname,
+								int baudrate,
+								uint8_t devid,
+								int proto )	{
+	
+	int 			port_num;
+	uint16_t	dxl_model_number;
+	
+	// First, try to get the device number with a ping
+	
+	// Get port number associated to port name
+	port_num = portHandler( portname );
+	
+	// Initialize PacketHandler Structs
+  packetHandler( );
+  
+  // Open port
+  if ( !openPort( port_num ) )
+  {
+    fprintf( stderr, "dxl_status: error while opening port %s.\n", portname );
+		return -1;
+  }
+  
+  // Ping the device
+  dxl_model_number = pingGetModelNum( port_num, proto, devid );
+  
+  // Check if the device is responding
+  if ( !dxl_model_number )	{
+		fprintf( stderr, "dxl_status: device is not responding to ping. Try a scan.\n" );
+		return -2;
+	}
+	
+	// Switch to subroutines according to the device detected
+	
+	switch( dxl_model_number )	{
+	
+	
+		default:
+			fprintf( stderr, 	"dxl_status: device %d is not recongnised. Needs to be implemented.\n",
+												dxl_model_number );
+			return -2;
+	}
+	
+	return 0;
+}
+
+/*
+ * 
  * main
  * 
  */
-
 int main( int argc, char *argv[] )
 {
   // Manage parameters
@@ -4140,6 +4200,21 @@ int main( int argc, char *argv[] )
 			fprintf( stderr, "dxl: dxl_scan returned an error.\n" );
 			exit( EXIT_FAILURE );
 		}
+		else
+			exit( EXIT_SUCCESS );
+	}
+	
+	// status command
+	
+	if ( !strcmp( argv[1], "status" ) )	{
+		if ( argc != 6 )
+			goto display_help;
+		if ( dxl_status( argv[2], atoi( argv[3] ), (uint8_t)atoi( argv[4] ), atoi( argv[5] ) ) )	{
+			fprintf( stderr, "dxl: dxl_status returned an error.\n" );
+			exit( EXIT_FAILURE );
+		}
+		else
+			exit( EXIT_SUCCESS );
 	}
 	
 	// Default action
@@ -4147,7 +4222,7 @@ int main( int argc, char *argv[] )
 	display_help:
 	printf( "▶▶▶ dxl: a " TERM_UNDER "simple" TERM_RESET " command line interface to Dynamixel actuators ◀◀◀\n" );
 	printf( "Version %d.%d (jacques.gangloff@unistra.fr)\n", DXL_VERSION_MAJOR, DXL_VERSION_MINOR );
-	printf( "Usage: dxl command [parameters]\n" );
+	printf( "Usage:  dxl " TERM_BRIGHT "command" TERM_RESET TERM_DIM " [parameters]\n" );
 	printf( "List of " TERM_BRIGHT "commands" TERM_RESET " and " TERM_DIM "parameters" TERM_RESET ":\n" );
 	// help
 	printf( TERM_BRIGHT "\thelp\n" TERM_RESET );
@@ -4156,6 +4231,12 @@ int main( int argc, char *argv[] )
 	printf( TERM_BRIGHT "\tscan" TERM_RESET TERM_DIM " portname\n" TERM_RESET );
 	printf( "\t\tScan every baudrates, IDs and protocols looking for responding devices.\n" );
 	printf( "\t\t" TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
-		
+	// status
+	printf( TERM_BRIGHT "\tstatus" TERM_RESET TERM_DIM " portname baudrate devid proto\n" TERM_RESET );
+	printf( "\t\tDisplay register values of the given device.\n" );
+	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
+	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
+	printf( "\t\t"  TERM_DIM "devid" TERM_RESET " is the device ID of the targeted Dynamixel actuator (eg 1).\n" );
+	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
   exit( EXIT_SUCCESS );
 }
