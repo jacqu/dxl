@@ -334,8 +334,14 @@ int getBaudRateLinux(int port_num)
 
 int getBytesAvailableLinux(int port_num)
 {
-  int bytes_available;
-  ioctl(portData[port_num].socket_fd, FIONREAD, &bytes_available);
+  int bytes_available, ret;
+  
+  ret = ioctl(portData[port_num].socket_fd, FIONREAD, &bytes_available);
+  
+  if ( ret < 0 )	{
+		perror( "getBytesAvailableLinux" );
+		bytes_available = 0;
+	}
   return bytes_available;
 }
 
@@ -440,6 +446,8 @@ uint8_t setCustomBaudrateLinux(int port_num, int speed)
 {
   // try to set a custom divisor
   struct serial_struct ss;
+  memset(&ss, 0, sizeof(struct serial_struct));
+  
   if (ioctl(portData[port_num].socket_fd, TIOCGSERIAL, &ss) != 0)
   {
     printf("[PortHandlerLinux::SetCustomBaudrate] TIOCGSERIAL failed!\n");
@@ -1374,9 +1382,10 @@ void txRxPacket1(int port_num)
 
   // rx packet
   rxPacket1(port_num);
-  // check txpacket ID == rxpacket ID
-  if (packetData[port_num].tx_packet[PKT_ID] != packetData[port_num].rx_packet[PKT_ID])
-    rxPacket1(port_num);
+  // check txpacket ID == rxpacket ID; if not try again.
+  if (packetData[port_num].communication_result == COMM_SUCCESS)
+		if (packetData[port_num].tx_packet[PKT_ID] != packetData[port_num].rx_packet[PKT_ID])
+			rxPacket1(port_num);
 
   if (packetData[port_num].communication_result == COMM_SUCCESS && packetData[port_num].tx_packet[PKT_ID] != BROADCAST_ID)
   {
@@ -2256,9 +2265,10 @@ void txRxPacket2(int port_num)
 
   // rx packet
   rxPacket2(port_num);
-  // check txpacket ID == rxpacket ID
-  if (packetData[port_num].tx_packet[PKT_ID_2] != packetData[port_num].rx_packet[PKT_ID_2])
-    rxPacket2(port_num);
+  // check txpacket ID == rxpacket ID; if not, try again
+  if (packetData[port_num].communication_result == COMM_SUCCESS)
+		if (packetData[port_num].tx_packet[PKT_ID_2] != packetData[port_num].rx_packet[PKT_ID_2])
+			rxPacket2(port_num);
 
   if (packetData[port_num].communication_result == COMM_SUCCESS && packetData[port_num].tx_packet[PKT_ID_2] != BROADCAST_ID)
   {
