@@ -924,6 +924,18 @@ uint32_t read4ByteTxRx(int port_num, int protocol_version, uint8_t id, uint16_t 
   }
 };
 
+uint8_t* readNByteTxRx(int port_num, int protocol_version, uint8_t id, uint16_t address, uint8_t length)
+{
+  if (protocol_version == 1)
+  {
+    return readNByteTxRx1(port_num, id, address, length);
+  }
+  else
+  {
+    return readNByteTxRx2(port_num, id, address, length);
+  }
+};
+
 void writeTxOnly(int port_num, int protocol_version, uint8_t id, uint16_t address, uint16_t length)
 {
   if (protocol_version == 1)
@@ -1630,6 +1642,12 @@ uint32_t read4ByteTxRx1(int port_num, uint8_t id, uint16_t address)
 {
   packetData[port_num].communication_result = COMM_NOT_AVAILABLE;
   return 0;
+}
+
+uint8_t* readNByteTxRx1(int port_num, uint8_t id, uint16_t address, uint8_t length)
+{
+  packetData[port_num].communication_result = COMM_NOT_AVAILABLE;
+  return NULL;
 }
 
 void writeTxOnly1(int port_num, uint8_t id, uint16_t address, uint16_t length)
@@ -2654,7 +2672,15 @@ uint32_t read4ByteTxRx2(int port_num, uint8_t id, uint16_t address)
     return DXL_MAKEDWORD(DXL_MAKEWORD(packetData[port_num].data_read[0], packetData[port_num].data_read[1]), DXL_MAKEWORD(packetData[port_num].data_read[2], packetData[port_num].data_read[3]));
   return 0;
 }
-
+uint8_t* readNByteTxRx2(int port_num, uint8_t id, uint16_t address, uint8_t length)
+{
+  packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, length * sizeof(uint8_t));
+  memset(packetData[port_num].data_read, 0, length * sizeof(uint8_t));
+  readTxRx2(port_num, id, address, length);
+  if (packetData[port_num].communication_result == COMM_SUCCESS)
+    return packetData[port_num].data_read;
+  return NULL;
+}
 
 void writeTxOnly2(int port_num, uint8_t id, uint16_t address, uint16_t length)
 {
@@ -4013,15 +4039,32 @@ int kbhit(void)
 }
 
 /*
- *	dxl_scan : 	scan the serial bus for responding devices. Print
+ * 
+ * dxl_model_nb_2_name: 
+ * 
+ * 
+ */
+char* dxl_model_nb_2_name( uint16_t	dxl_model_number )	{
+	char* dxl_model_name = "unknown model";
+	int		i;
+
+	for ( i = 0; i < NELEMS( dxl_reg_list ); i++ )
+		if ( dxl_reg_list[i][0].initial == dxl_model_number )
+			dxl_model_name = dxl_reg_list[i][0].short_description;
+	
+	return dxl_model_name;
+}
+
+/*
+ *	dxl_scan: 	scan the serial bus for responding devices. Print
  * 							a list of the devices that responded to ping.
  * 	
- * 	Parameters :
- * 		device : name of the serial device (usually /dev/ttyUSB0)
+ * 	Parameters:
+ * 		device:		name of the serial device (usually /dev/ttyUSB0)
  * 
- * 	Return value :
- * 		0 : success
- * 		negative value : error
+ * 	Return value:
+ * 		0: 				success
+ * 		<0: 			error
  * 	
  */
  
@@ -4071,9 +4114,9 @@ int dxl_scan( char *portname )	{
 		
 		// Set port baudrate
 		if ( !setBaudRate( port_num, dxl_scan_baudrates[i] ) )	{
-			fprintf( stderr, 	"dxl_scan: unable to set baudrate %d bps on port %d. Skipping.\n", 
+			fprintf( stderr, 	"dxl_scan: unable to set baudrate %d bps on port %s. Skipping.\n", 
 												dxl_scan_baudrates[i],
-												port_num );
+												portname );
 			continue;
 		}
 		
@@ -4092,8 +4135,9 @@ int dxl_scan( char *portname )	{
 				
 				if ( dxl_model_number )	{
 					fprintf( 	stderr, 
-										"Model %d found as ID%d using protocol %d at %d bps.\n",
+										"Model %d (%s) found as ID%d using protocol %d at %d bps.\n",
 										dxl_model_number,
+										dxl_model_nb_2_name( dxl_model_number ),
 										j,
 										k,
 										dxl_scan_baudrates[i] );
@@ -4133,8 +4177,15 @@ int dxl_status( char *portname,
 								uint8_t devid,
 								int proto )	{
 	
-	int 			port_num;
-	uint16_t	dxl_model_number;
+	int 												port_num;
+	uint16_t										dxl_model_number;
+	dxl_registers_struct_type*	dxl_reg = NULL;
+	int													i;
+	int 												dxl_comm_result; 
+	uint8_t 										dxl_error;
+	uint8_t*										buf;
+	uint8_t*										buf_pt;
+	uint32_t										buf_size;
 	
 	// First, try to get the device number with a ping
 	
@@ -4151,26 +4202,96 @@ int dxl_status( char *portname,
 		return -1;
   }
   
+  // Set port baudrate
+	if ( !setBaudRate( port_num, baudrate ) )	{
+		fprintf( stderr, 	"dxl_status: unable to set baudrate %d bps on port %s. Skipping.\n", 
+											baudrate,
+											portname );
+		closePort( port_num );
+		return -2;
+	}
+		
+  
   // Ping the device
   dxl_model_number = pingGetModelNum( port_num, proto, devid );
   
   // Check if the device is responding
   if ( !dxl_model_number )	{
 		fprintf( stderr, "dxl_status: device is not responding to ping. Try a scan.\n" );
-		return -2;
+		closePort( port_num );
+		return -3;
 	}
 	
-	// Switch to subroutines according to the device detected
+	// Find the register structure corresponding to the device
+	for ( i = 0; i < NELEMS( dxl_reg_list ); i++ )
+		if ( dxl_reg_list[i][0].initial == dxl_model_number )	{
+			dxl_reg = dxl_reg_list[i];
+			break;
+		}
 	
-	switch( dxl_model_number )	{
-	
-	
-		default:
-			fprintf( stderr, 	"dxl_status: device %d is not recongnised. Needs to be implemented.\n",
-												dxl_model_number );
-			return -2;
+	if ( dxl_reg == NULL )	{
+		fprintf( stderr, 	"dxl_status: device %d is not recongnised. Needs to be implemented.\n",
+											dxl_model_number );
+		closePort( port_num );
+		return -4;
 	}
 	
+	// Get the size of the register area on this device
+	i = 0;
+	while( dxl_reg[i++].mem_type != DXL_REG_MEM_END );
+	buf_size = dxl_reg[i-1].address;
+	
+	// Read all the registers at once
+	buf = readNByteTxRx(port_num, proto, devid, 0, buf_size);
+	if ((dxl_comm_result = getLastTxRxResult(port_num, proto)) != COMM_SUCCESS)
+	{
+		printTxRxResult(proto, dxl_comm_result);
+		closePort( port_num );
+		return -5;
+	}
+	else if ((dxl_error = getLastRxPacketError(port_num, proto)) != 0)
+	{
+		printRxPacketError(proto, dxl_error);
+		closePort( port_num );
+		return -6;
+	}
+	
+	if ( buf == NULL )	{
+		fprintf( stderr, "dxl_status: internal error.\n" );
+		closePort( port_num );
+		return -7;
+	}
+	
+	// Display results
+	
+	i = 0;
+	while ( dxl_reg[i].mem_type != DXL_REG_MEM_END )	{
+		printf( "%s (%d):", dxl_reg[i].description, dxl_reg[i].size );
+		buf_pt = &buf[dxl_reg[i].address];
+		switch ( dxl_reg[i].size )	{
+			case 1:
+				printf( "\t%d", buf_pt[0] );
+				break;
+			
+			case 2:
+				printf( "\t%d", DXL_MAKEWORD(buf_pt[0], buf_pt[1]) );
+				break;
+			
+			case 4:
+				printf( "\t%d", DXL_MAKEDWORD(DXL_MAKEWORD(buf_pt[0], buf_pt[1]), DXL_MAKEWORD(buf_pt[2], buf_pt[3])) );
+				break;
+			
+			default:
+				printf( "\tundefined" );
+				break;
+		}
+		printf( "\n" );
+		i++;
+	}
+	
+	// Close port
+  closePort( port_num );
+  
 	return 0;
 }
 

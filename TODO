@@ -1,1 +1,5 @@
 * Implement all actuator register definitions
+* Defin dxl_* functions in dxl.h
+* Define sign of parameter and coefficient for status
+* Implement read and write function, if possible in bulk mode, with
+devicename, baudrate, id start, id stop, address, size, sign
