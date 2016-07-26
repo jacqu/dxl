@@ -4186,6 +4186,8 @@ int dxl_status( char *portname,
 	uint8_t*										buf;
 	uint8_t*										buf_pt;
 	uint32_t										buf_size;
+	long long										reg_value;
+	char												buf_display[DXL_REG_DESCRIPTION_LENGTH+1];
 	
 	// First, try to get the device number with a ping
 	
@@ -4266,25 +4268,59 @@ int dxl_status( char *portname,
 	
 	i = 0;
 	while ( dxl_reg[i].mem_type != DXL_REG_MEM_END )	{
-		printf( "%s (%d):", dxl_reg[i].description, dxl_reg[i].size );
+		if ( dxl_reg[i].mem_type == DXL_REG_MEM_EEPROM )
+			printf( "[%03d] EEPROM,", dxl_reg[i].address );
+		else
+			printf( "[%03d]    RAM,", dxl_reg[i].address );
+		if ( dxl_reg[i].access == DXL_REG_ACCESS_R )
+			printf( "RO " );
+		else
+			printf( "RW " );
+		memset( buf_display, '.', DXL_REG_DESCRIPTION_LENGTH );
+		buf_display[DXL_REG_DESCRIPTION_LENGTH] = 0;
+		snprintf( buf_display, DXL_REG_DESCRIPTION_LENGTH+1, "%s", dxl_reg[i].description );
+		buf_display[strlen(buf_display)] = '.';
+		printf( "%s", buf_display );
+		
 		buf_pt = &buf[dxl_reg[i].address];
-		switch ( dxl_reg[i].size )	{
-			case 1:
-				printf( "\t%d", buf_pt[0] );
+		switch ( dxl_reg[i].data_type )	{
+			case DXL_REG_TYPE_UINT8:
+				reg_value = (uint8_t)buf_pt[0];
 				break;
 			
-			case 2:
-				printf( "\t%d", DXL_MAKEWORD(buf_pt[0], buf_pt[1]) );
+			case DXL_REG_TYPE_SINT8:
+				reg_value = (int8_t)buf_pt[0];
 				break;
 			
-			case 4:
-				printf( "\t%d", DXL_MAKEDWORD(DXL_MAKEWORD(buf_pt[0], buf_pt[1]), DXL_MAKEWORD(buf_pt[2], buf_pt[3])) );
+			case DXL_REG_TYPE_UINT16:
+				reg_value = *( (uint16_t*)buf_pt );
+				break;
+			
+			case DXL_REG_TYPE_SINT16:
+				reg_value = *( (int16_t*)buf_pt );
+				break;
+			
+			case DXL_REG_TYPE_UINT32:
+				reg_value = *( (uint32_t*)buf_pt );
+				break;
+			
+			case DXL_REG_TYPE_SINT32:
+				reg_value = *( (int32_t*)buf_pt );
 				break;
 			
 			default:
-				printf( "\tundefined" );
+				reg_value = 0;
 				break;
 		}
+		
+		printf( " " );
+		if ( dxl_reg[i].unit_quantum == 1.0 )
+			printf( "%10lld", reg_value );
+		else {
+			printf( "%10f", (double)reg_value * dxl_reg[i].unit_quantum ); 
+		}
+		
+		printf( " [%s]", dxl_reg[i].unit_name );
 		printf( "\n" );
 		i++;
 	}
