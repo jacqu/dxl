@@ -1646,7 +1646,13 @@ uint32_t read4ByteTxRx1(int port_num, uint8_t id, uint16_t address)
 
 uint8_t* readNByteTxRx1(int port_num, uint8_t id, uint16_t address, uint8_t length)
 {
-  packetData[port_num].communication_result = COMM_NOT_AVAILABLE;
+  packetData[port_num].data_read = (uint8_t *)realloc(packetData[port_num].data_read, length * sizeof(uint8_t));
+	memset(packetData[port_num].data_read, 0, length * sizeof(uint8_t));
+  readTxRx1(port_num, id, address, length);
+
+  if (packetData[port_num].communication_result == COMM_SUCCESS)
+    return packetData[port_num].data_read;
+    
   return NULL;
 }
 
@@ -4069,16 +4075,10 @@ char* dxl_model_nb_2_name( uint16_t	dxl_model_number )	{
  */
  
 int dxl_scan_baudrates[] = {	9600,
-															19200,
 															57600,
 															115200,
-															200000,
-															250000,
-															400000,
-															500000,
 															1000000,
 															2000000,
-															2500000,
 															3000000,
 															4000000 };
 															
@@ -4266,6 +4266,12 @@ int dxl_status( char *portname,
 	
 	// Display results
 	
+	printf( TERM_BRIGHT "▶▶▶ %s as ID%d using protocol %d at %d bps ◀◀◀\n" TERM_RESET,
+					dxl_reg[0].short_description,
+					devid,
+					proto,
+					baudrate );
+	
 	i = 0;
 	while ( dxl_reg[i].mem_type != DXL_REG_MEM_END )	{
 		if ( dxl_reg[i].mem_type == DXL_REG_MEM_EEPROM )
@@ -4333,6 +4339,29 @@ int dxl_status( char *portname,
 
 /*
  * 
+ *	dxl_ping: display ping statistics of the dynamixel actuator
+ * 
+ * 	Parameters :
+ * 		portname: 		name of the serial device (usually /dev/ttyUSB0)
+ * 		baudrate: 		baud rate of the serial communication
+ * 		devid:				ID of the targeted device
+ * 		proto: 				version of the protocol (1 or 2)
+ * 
+ *	Return value :
+ * 		0 : success
+ * 		negative value : error
+ * 
+ */
+int dxl_ping( char *portname,
+								int baudrate,
+								uint8_t devid,
+								int proto )	{
+
+	return 0;
+}
+
+/*
+ * 
  * main
  * 
  */
@@ -4347,6 +4376,19 @@ int main( int argc, char *argv[] )
 	
 	if ( !strcmp( argv[1], "help" ) )
 		goto display_help;
+	
+	// ping command
+	
+	if ( !strcmp( argv[1], "ping" ) )	{
+		if ( argc != 6 )
+			goto display_help;
+		if ( dxl_ping( argv[2], atoi( argv[3] ), (uint8_t)atoi( argv[4] ), atoi( argv[5] ) ) )	{
+			fprintf( stderr, "dxl: dxl_ping returned an error.\n" );
+			exit( EXIT_FAILURE );
+		}
+		else
+			exit( EXIT_SUCCESS );
+	}
 	
 	// scan command
 	
@@ -4379,11 +4421,18 @@ int main( int argc, char *argv[] )
 	display_help:
 	printf( "▶▶▶ dxl: a " TERM_UNDER "simple" TERM_RESET " command line interface to Dynamixel actuators ◀◀◀\n" );
 	printf( "Version %d.%d (jacques.gangloff@unistra.fr)\n", DXL_VERSION_MAJOR, DXL_VERSION_MINOR );
-	printf( "Usage:  dxl " TERM_BRIGHT "command" TERM_RESET TERM_DIM " [parameters]\n" );
+	printf( "Usage:  dxl " TERM_BRIGHT "command" TERM_RESET TERM_DIM " [parameters]\n" TERM_RESET );
 	printf( "List of " TERM_BRIGHT "commands" TERM_RESET " and " TERM_DIM "parameters" TERM_RESET ":\n" );
 	// help
 	printf( TERM_BRIGHT "\thelp\n" TERM_RESET );
 	printf( "\t\tDisplay this help message.\n" );
+	// ping
+	printf( TERM_BRIGHT "\tping" TERM_RESET TERM_DIM " portname baudrate devid proto\n" TERM_RESET );
+	printf( "\t\tDisplay ping statistics. [CTRL-C] to stop.\n" );
+	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
+	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
+	printf( "\t\t"  TERM_DIM "devid" TERM_RESET " is the device ID of the targeted Dynamixel actuator (eg 1).\n" );
+	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
 	// scan
 	printf( TERM_BRIGHT "\tscan" TERM_RESET TERM_DIM " portname\n" TERM_RESET );
 	printf( "\t\tScan every baudrates, IDs and protocols looking for responding devices.\n" );
