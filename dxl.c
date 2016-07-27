@@ -4356,6 +4356,66 @@ int dxl_ping( char *portname,
 								int baudrate,
 								uint8_t devid,
 								int proto )	{
+									
+	struct timespec 		before, after;
+  unsigned long long 	ping_delay;
+  int 								port_num;
+	uint16_t						dxl_model_number;
+  
+  // Get port number associated to port name
+	port_num = portHandler( portname );
+	
+	// Initialize PacketHandler Structs
+  packetHandler( );
+  
+  // Open port
+  if ( !openPort( port_num ) )
+  {
+    fprintf( stderr, "dxl_ping: error while opening port %s.\n", portname );
+		return -1;
+  }
+  
+  // Set port baudrate
+	if ( !setBaudRate( port_num, baudrate ) )	{
+		fprintf( stderr, 	"dxl_ping: unable to set baudrate %d bps on port %s. Skipping.\n", 
+											baudrate,
+											portname );
+		closePort( port_num );
+		return -2;
+	}
+		
+  
+  // Ping the device frst
+  dxl_model_number = pingGetModelNum( port_num, proto, devid );
+  
+  // Check if the device is responding
+  if ( !dxl_model_number )	{
+		fprintf( stderr, "dxl_ping: device is not responding to ping. Try a scan.\n" );
+		closePort( port_num );
+		return -3;
+	}
+	
+	// Continuously ping device and display delay statistics
+	
+	while ( 1 )	{
+		
+		clock_gettime( CLOCK_MONOTONIC, &before );
+		dxl_model_number = pingGetModelNum( port_num, proto, devid );
+		clock_gettime( CLOCK_MONOTONIC, &after );
+		ping_delay = 	( after.tv_sec - before.tv_sec ) * 1000000 +
+						( after.tv_nsec - before.tv_nsec ) / 1000;
+		if ( !dxl_model_number )
+			fprintf( stderr, "dxl_ping: device is not responding to ping.\n" );
+		else
+			printf( "dxl_ping: round-trip duration = %llu us.\n", ping_delay );
+		
+		if ( kbhit( ) )
+			break;
+			
+	}
+	
+	// Close port
+  closePort( port_num );
 
 	return 0;
 }
@@ -4428,7 +4488,7 @@ int main( int argc, char *argv[] )
 	printf( "\t\tDisplay this help message.\n" );
 	// ping
 	printf( TERM_BRIGHT "\tping" TERM_RESET TERM_DIM " portname baudrate devid proto\n" TERM_RESET );
-	printf( "\t\tDisplay ping statistics. [CTRL-C] to stop.\n" );
+	printf( "\t\tDisplay ping statistics. Press any key to stop.\n" );
 	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
 	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
 	printf( "\t\t"  TERM_DIM "devid" TERM_RESET " is the device ID of the targeted Dynamixel actuator (eg 1).\n" );
