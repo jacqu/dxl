@@ -250,6 +250,25 @@ GroupDataSW															*groupDataSW;
  * 
  */
 
+int portName2portNumLinux(const char *port_name)
+{
+	int port_num;
+	
+	if (portData == NULL)
+		return -1;
+	
+	for (port_num = 0; port_num < g_used_port_num; port_num++)
+  {
+		if (!strcmp(portData[port_num].port_name, port_name))
+			break;
+  }
+	
+	if (port_num == g_used_port_num)
+		return -2;
+	
+	return port_num;
+}
+
 int portHandlerLinux(const char *port_name)
 {
   int port_num;
@@ -273,7 +292,8 @@ int portHandlerLinux(const char *port_name)
     {
       for (port_num = 0; port_num < g_used_port_num; port_num++)
       {
-        if (portData[port_num].socket_fd != -1)
+				//FIXME: changed != into ==, has to be checked.
+        if (portData[port_num].socket_fd == -1)
           break;
       }
 
@@ -551,6 +571,7 @@ int getCFlagBaud(int baudrate)
  * 
  */
 
+int     portName2portNum    (const char *port_name) { return portName2portNumLinux(port_name); };
 int     portHandler         (const char *port_name) { return portHandlerLinux(port_name); };
 
 uint8_t openPort            (int port_num) { return openPortLinux(port_num); };

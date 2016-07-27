@@ -1,4 +1,7 @@
 * Implement all actuator register definitions
 * Defin dxl_* functions in dxl.h
-* Implement read and write function, if possible in bulk mode, with
-devicename, baudrate, id start, id stop, address, size, sign
+* Implement :
+	dxl_open( portname, proto, baurate )
+	dxl_close( portname )
+	uint8* dxl_read( portname, proto, baurate, devidstart, devidnb, address, length )
+	dxl_write( )

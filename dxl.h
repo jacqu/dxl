@@ -43,6 +43,7 @@
  * 
  */
 
+int 		portName2portNumLinux			(const char *port_name);
 int 		portHandlerLinux        	(const char *port_name);
 
 uint8_t setupPortLinux          	(int port_num, const int cflag_baud);
@@ -79,6 +80,7 @@ uint8_t isPacketTimeoutLinux      (int port_num);
  * 
  */
 
+int     portName2portNum    			(const char *port_name);
 int     portHandler             	(const char *port_name);
 
 uint8_t openPort                	(int port_num);
