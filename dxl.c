@@ -4070,7 +4070,7 @@ int kbhit(void)
  *	dxl_open: open a UART device 
  * 
  * 	Parameters:
- * 		portname: 		name of the serial device (usually /dev/ttyUSB0)
+ * 		port_name: 		name of the serial device (usually /dev/ttyUSB0)
  * 		baudrate: 		baud rate of the serial communication
  * 
  * 	Return value:
@@ -4078,13 +4078,13 @@ int kbhit(void)
  * 		<0: 			error
  * 
  */
-int dxl_open( ( char *portname,
-								int baudrate )	{
+int dxl_open( char *port_name,
+							int baudrate )	{
 									
 	int	port_num;
 	
 	// Get port number associated to port name
-	port_num = portHandler( portname );
+	port_num = portHandler( port_name );
 	
 	// Initialize PacketHandler Structs
   packetHandler( );
@@ -4092,7 +4092,7 @@ int dxl_open( ( char *portname,
   // Open port
   if ( !openPort( port_num ) )
   {
-    fprintf( stderr, "dxl_open: error while opening port %s.\n", portname );
+    fprintf( stderr, "dxl_open: error while opening port %s.\n", port_name );
 		return -1;
   }
   
@@ -4100,7 +4100,7 @@ int dxl_open( ( char *portname,
 	if ( !setBaudRate( port_num, baudrate ) )	{
 		fprintf( stderr, 	"dxl_open: unable to set baudrate %d bps on port %s. Skipping.\n", 
 											baudrate,
-											portname );
+											port_name );
 		closePort( port_num );
 		return -2;
 	}
@@ -4110,7 +4110,28 @@ int dxl_open( ( char *portname,
 
 /*
  * 
- * dxl_model_nb_2_name: 
+ *	dxl_close: close serial link
+ * 
+ *	Parameters:
+ * 		port_name: 		name of the serial device (usually /dev/ttyUSB0)
+ * 
+ */
+void dxl_close( char *port_name )	{
+	
+	int port_num;
+	
+	port_num = portName2portNum( port_name );
+	
+	if ( port_num >= 0 )
+		closePort( port_num );
+	else
+		fprintf( stderr, 	"dxl_close: unable to close %s device.\n", 
+											port_name );
+}
+
+/*
+ * 
+ *	dxl_model_nb_2_name: 
  * 
  * 
  */
@@ -4147,7 +4168,7 @@ int dxl_scan_baudrates[] = {	9600,
 															4000000 };
 															
 
-int dxl_scan( char *portname )	{
+int dxl_scan( char *port_name )	{
 	int 			port_num, i, j, k;
 	uint16_t	dxl_model_number;
 	int				old_latency_timer;
@@ -4157,7 +4178,7 @@ int dxl_scan( char *portname )	{
   LATENCY_TIMER = 10;
 	
 	// Get port number associated to port name
-	port_num = portHandler( portname );
+	port_num = portHandler( port_name );
 	
 	// Initialize PacketHandler Structs
   packetHandler( );
@@ -4165,7 +4186,7 @@ int dxl_scan( char *portname )	{
   // Open port
   if ( !openPort( port_num ) )
   {
-    fprintf( stderr, "dxl_scan: error while opening port %s.\n", portname );
+    fprintf( stderr, "dxl_scan: error while opening port %s.\n", port_name );
     LATENCY_TIMER = old_latency_timer;
 		return -1;
   }
@@ -4180,7 +4201,7 @@ int dxl_scan( char *portname )	{
 		if ( !setBaudRate( port_num, dxl_scan_baudrates[i] ) )	{
 			fprintf( stderr, 	"dxl_scan: unable to set baudrate %d bps on port %s. Skipping.\n", 
 												dxl_scan_baudrates[i],
-												portname );
+												port_name );
 			continue;
 		}
 		
@@ -4226,7 +4247,7 @@ int dxl_scan( char *portname )	{
  *	dxl_status: display the register values of the dynamixel actuator
  * 
  * 	Parameters :
- * 		portname: 		name of the serial device (usually /dev/ttyUSB0)
+ * 		port_name: 		name of the serial device (usually /dev/ttyUSB0)
  * 		baudrate: 		baud rate of the serial communication
  * 		devid:				ID of the targeted device
  * 		proto: 				version of the protocol (1 or 2)
@@ -4236,7 +4257,7 @@ int dxl_scan( char *portname )	{
  * 		negative value : error
  * 
  */
-int dxl_status( char *portname,
+int dxl_status( char *port_name,
 								int baudrate,
 								uint8_t devid,
 								int proto )	{
@@ -4256,7 +4277,7 @@ int dxl_status( char *portname,
 	// First, try to get the device number with a ping
 	
 	// Get port number associated to port name
-	port_num = portHandler( portname );
+	port_num = portHandler( port_name );
 	
 	// Initialize PacketHandler Structs
   packetHandler( );
@@ -4264,7 +4285,7 @@ int dxl_status( char *portname,
   // Open port
   if ( !openPort( port_num ) )
   {
-    fprintf( stderr, "dxl_status: error while opening port %s.\n", portname );
+    fprintf( stderr, "dxl_status: error while opening port %s.\n", port_name );
 		return -1;
   }
   
@@ -4272,7 +4293,7 @@ int dxl_status( char *portname,
 	if ( !setBaudRate( port_num, baudrate ) )	{
 		fprintf( stderr, 	"dxl_status: unable to set baudrate %d bps on port %s. Skipping.\n", 
 											baudrate,
-											portname );
+											port_name );
 		closePort( port_num );
 		return -2;
 	}
@@ -4406,7 +4427,7 @@ int dxl_status( char *portname,
  *	dxl_ping: display ping statistics of the dynamixel actuator
  * 
  * 	Parameters :
- * 		portname: 		name of the serial device (usually /dev/ttyUSB0)
+ * 		port_name: 		name of the serial device (usually /dev/ttyUSB0)
  * 		baudrate: 		baud rate of the serial communication
  * 		devid:				ID of the targeted device
  * 		proto: 				version of the protocol (1 or 2)
@@ -4416,7 +4437,7 @@ int dxl_status( char *portname,
  * 		negative value : error
  * 
  */
-int dxl_ping( char *portname,
+int dxl_ping( char *port_name,
 								int baudrate,
 								uint8_t devid,
 								int proto )	{
@@ -4427,7 +4448,7 @@ int dxl_ping( char *portname,
 	uint16_t						dxl_model_number;
   
   // Get port number associated to port name
-	port_num = portHandler( portname );
+	port_num = portHandler( port_name );
 	
 	// Initialize PacketHandler Structs
   packetHandler( );
@@ -4435,7 +4456,7 @@ int dxl_ping( char *portname,
   // Open port
   if ( !openPort( port_num ) )
   {
-    fprintf( stderr, "dxl_ping: error while opening port %s.\n", portname );
+    fprintf( stderr, "dxl_ping: error while opening port %s.\n", port_name );
 		return -1;
   }
   
@@ -4443,7 +4464,7 @@ int dxl_ping( char *portname,
 	if ( !setBaudRate( port_num, baudrate ) )	{
 		fprintf( stderr, 	"dxl_ping: unable to set baudrate %d bps on port %s. Skipping.\n", 
 											baudrate,
-											portname );
+											port_name );
 		closePort( port_num );
 		return -2;
 	}

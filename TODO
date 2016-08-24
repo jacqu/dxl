@@ -5,3 +5,33 @@
 	dxl_close( portname )
 	uint8* dxl_read( portname, proto, baurate, devidstart, devidnb, address, length )
 	dxl_write( )
+	
+	
+Simulink Bloc
+=============
+
+Input:
+	One dimension value. Customizable through user interface.
+Output:
+	Up to five values. Customizable through user interface.
+Start:
+	Enable. Address customizable.
+Stop:
+	Disbale. Same address than start.
+
+** UI **
+
+Port name (0=/dev/ttyUSB0, ..., 9=/dev/ttyUSB0, 10=/dev/ttyS0, ...)
+Baudrate
+Protocol (1 or 2)
+Start ID (Lowest ID to be addressed)
+NB IDs (Number of devices that should be addressed, min 1)
+Enable address (address of the enable register)
+Write address (address of the register that should be written as input)
+Write length (size of the written register, 1, 2 or 4)
+Read address 1 (address of the first register to be read)
+Read lenght 1 (length of the first register to be read)
+...
+Read address 5 (address of the fifth register to be read)
+Read lenght 5 (length of the fifth register to be read)
+
