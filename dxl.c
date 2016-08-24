@@ -4067,6 +4067,49 @@ int kbhit(void)
 
 /*
  * 
+ *	dxl_open: open a UART device 
+ * 
+ * 	Parameters:
+ * 		portname: 		name of the serial device (usually /dev/ttyUSB0)
+ * 		baudrate: 		baud rate of the serial communication
+ * 
+ * 	Return value:
+ * 		0: 				success
+ * 		<0: 			error
+ * 
+ */
+int dxl_open( ( char *portname,
+								int baudrate )	{
+									
+	int	port_num;
+	
+	// Get port number associated to port name
+	port_num = portHandler( portname );
+	
+	// Initialize PacketHandler Structs
+  packetHandler( );
+  
+  // Open port
+  if ( !openPort( port_num ) )
+  {
+    fprintf( stderr, "dxl_open: error while opening port %s.\n", portname );
+		return -1;
+  }
+  
+  // Set port baudrate
+	if ( !setBaudRate( port_num, baudrate ) )	{
+		fprintf( stderr, 	"dxl_open: unable to set baudrate %d bps on port %s. Skipping.\n", 
+											baudrate,
+											portname );
+		closePort( port_num );
+		return -2;
+	}
+	
+	return 0;
+}
+
+/*
+ * 
  * dxl_model_nb_2_name: 
  * 
  * 
