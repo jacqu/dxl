@@ -26,7 +26,6 @@ Baudrate
 Protocol (1 or 2)
 Start ID (Lowest ID to be addressed)
 NB IDs (Number of devices that should be addressed, min 1)
-Enable address (address of the enable register)
 Write address (address of the register that should be written as input)
 Write length (size of the written register, 1, 2 or 4)
 Read address 1 (address of the first register to be read)
@@ -34,4 +33,24 @@ Read lenght 1 (length of the first register to be read)
 ...
 Read address 5 (address of the fifth register to be read)
 Read lenght 5 (length of the fifth register to be read)
+
+init address1
+init length1
+init value1
+...
+init address6
+init length6
+init value6
+
+halt address1
+halt length1
+halt value1
+...
+halt address4
+halt length4
+halt value4
+
+Remarks: 
+* PID initial values should also be initialized since they are stored in RAM.
+* Enable should be done at the end of the init sequence
 
