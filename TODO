@@ -7,8 +7,11 @@
 	dxl_write( )
 	
 	
-Simulink Bloc
+Simulink Block
 =============
+
+Separate block read and write. Opening multiple times the same
+device is not an issue.
 
 Input:
 	One dimension value. Customizable through user interface.

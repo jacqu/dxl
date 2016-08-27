@@ -4131,6 +4131,114 @@ void dxl_close( char *port_name )	{
 
 /*
  * 
+ *	dxl_read: bulk read data on consecutive IDs
+ * 
+ * 	Parameters:
+ * 		port_name: 			name of the serial device (usually /dev/ttyUSB0)
+ * 		protocol:				1 or 2
+ * 		start_ID:				ID of the first device
+ * 		nb_device:			number of accessed devices
+ * 		start_address:	register address to be read
+ * 		data_length:		1, 2 or 4
+ * 		data:						pointer where data are written.
+ * 										Allocated length should be nb_device x data_length
+ * 
+ * 	Return value:
+ *  	0: 				success
+ * 		<0: 			error
+ * 
+ */
+int dxl_read( char*			port_name,
+							u_int8_t	protocol,
+							u_int8_t 	start_ID,
+							u_int8_t	nb_device,
+							u_int8_t	start_address,
+							u_int8_t	data_length,
+							u_int8_t	nb_data,
+							void*			data )	{
+
+	int 			port_num, 
+						group_num,
+						dxl_comm_result,
+						i;
+	uint8_t 	dxl_addparam_result;
+	uint32_t	data_read;
+	uint8_t*	data_pointer8;
+	uint16_t*	data_pointer16;
+	uint32_t*	data_pointer32;
+	
+	// Consistency check
+	
+	if ( ( protocol != 1 ) && ( protocol != 2 ) )
+	
+	// Find the port number
+	
+	port_num = portName2portNum( port_name );
+	
+	if ( port_num < 0 )	{
+		fprintf( stderr, 	"dxl_read: %s seems not be open.\n", 
+											port_name );
+		return -1;
+	}
+	
+	// Initialize Groupbulkread Structs
+	
+	group_num = groupBulkRead( port_num, protocol );
+	
+	// Add read instructions
+	
+	for ( i = start_ID, i < start_ID + nb_device; i++ )	{
+		dxl_addparam_result = groupBulkReadAddParam( group_num, i, start_address, data_length );
+		if ( !dxl_addparam_result )	{
+			fprintf( stderr, 	"dxl_read: unable to add read instruction in bulk read.\n" );
+			groupBulkReadClearParam( group_num );
+			return -2;
+		}
+	}
+	
+	// Bulk read
+	
+	groupBulkReadTxRxPacket( group_num );
+	
+	if ( ( dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS )	{
+		fprintf( stderr, 	"dxl_read: error during bulk read.\n" );
+		printTxRxResult( PROTOCOL_VERSION, dxl_comm_result );
+		groupBulkReadClearParam( group_num );
+		return -3;
+	}
+	
+	// Check if data is available
+	
+	for ( i = start_ID, i < start_ID + nb_device; i++ )	{
+		if ( !groupBulkReadIsAvailable( group_num, i, start_address, data_length ) )	{
+			fprintf( stderr, 	"dxl_read: missing bulk read data from device %d.\n", i );
+			groupBulkReadClearParam( group_num );
+			return -4;
+		}
+	}
+	
+	// Extract data
+	
+	data_pointer8 = data_pointer16 = data_pointer32 = data;
+	for ( i = start_ID, i < start_ID + nb_device; i++ )	{
+		data_read = groupBulkReadGetData( group_num, i, start_address, data_length );
+		switch( data_length )	{
+			case 1:
+				break;
+			
+			case 2:
+				break;
+			
+			case 4:
+				break;
+		}
+	
+	
+	return 0;
+}
+ 
+/*
+ * 
  *	dxl_model_nb_2_name: 
  * 
  * 
