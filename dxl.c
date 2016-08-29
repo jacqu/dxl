@@ -4321,12 +4321,12 @@ int dxl_write(	char*			port_name,
 	// Add write instructions
 	
 	for ( i = start_ID; i < start_ID + nb_device; i++ )	{
-		if ( data[i] < 0 )	{
-			data_write = (int32_t)data[i];
+		if ( data[i-start_ID] < 0 )	{
+			data_write = (int32_t)data[i-start_ID];
 			dxl_addparam_result = groupSyncWriteAddParam( group_num, i, *((uint32_t*)(&data_write)), data_length );	
 		}
 		else
-			dxl_addparam_result = groupSyncWriteAddParam( group_num, i, (uint32_t)data[i], data_length );
+			dxl_addparam_result = groupSyncWriteAddParam( group_num, i, (uint32_t)data[i-start_ID], data_length );
 		
 		if ( !dxl_addparam_result )	{
 			fprintf( stderr, 	"dxl_read: unable to add write instruction in sync write.\n" );
@@ -4858,6 +4858,11 @@ int main( int argc, char *argv[] )
 		data = malloc( (u_int8_t)atoi( argv[5] ) * sizeof( double ) );
 		for( i = 0; i < (u_int8_t)atoi( argv[5] ); i++ )
 			data[i] = (double)atoi( argv[9+i] );
+		
+		printf( "dxl_write: writing %d byte(s) at address %d ... ", 
+						(u_int8_t)atoi( argv[8] ),
+						(u_int8_t)atoi( argv[7] ) );
+							
 		if ( dxl_write( argv[2],
 										(u_int8_t)atoi( argv[6] ),
 										(u_int8_t)atoi( argv[4] ),
@@ -4865,7 +4870,7 @@ int main( int argc, char *argv[] )
 										(u_int8_t)atoi( argv[7] ),
 										(u_int8_t)atoi( argv[8] ),
 										data ) )	{
-			fprintf( stderr, "dxl: dxl_write returned an error.\n" );
+			fprintf( stderr, "\ndxl: dxl_write returned an error.\n" );
 			free( data );
 			dxl_close( argv[2] );
 			exit( EXIT_FAILURE );
@@ -4874,10 +4879,7 @@ int main( int argc, char *argv[] )
 		{
 			// Display result
 			
-			printf( "dxl_write: writing %d byte(s) at address %d ...", 
-							(u_int8_t)atoi( argv[8] ),
-							(u_int8_t)atoi( argv[7] ) );
-			printf( "done\n" );
+			printf( "done.\n" );
 			free( data );
 			dxl_close( argv[2] );
 			exit( EXIT_SUCCESS );
