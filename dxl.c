@@ -4140,8 +4140,9 @@ void dxl_close( char *port_name )	{
  * 		nb_device:			number of accessed devices
  * 		start_address:	register address to be read
  * 		data_length:		1, 2 or 4
+ * 		sign:						0 = unsigned int; 1 = signed int
  * 		data:						pointer where data are written.
- * 										Allocated length should be nb_device x data_length
+ * 										Should be an array of double
  * 
  * 	Return value:
  *  	0: 				success
@@ -4154,8 +4155,8 @@ int dxl_read( char*			port_name,
 							u_int8_t	nb_device,
 							u_int8_t	start_address,
 							u_int8_t	data_length,
-							u_int8_t	nb_data,
-							void*			data )	{
+							u_int8_t	sign,
+							double*		data )	{
 
 	int 			port_num, 
 						group_num,
@@ -4163,13 +4164,28 @@ int dxl_read( char*			port_name,
 						i;
 	uint8_t 	dxl_addparam_result;
 	uint32_t	data_read;
-	uint8_t*	data_pointer8;
-	uint16_t*	data_pointer16;
-	uint32_t*	data_pointer32;
 	
 	// Consistency check
 	
-	if ( ( protocol != 1 ) && ( protocol != 2 ) )
+	if ( ( protocol != 1 ) && ( protocol != 2 ) )	{
+		fprintf( stderr, 	"dxl_read: unknown protocol version.\n" );
+		return -1;
+	}
+	
+	if ( ( start_ID < 1 ) || ( start_ID > MAX_ID ) )	{
+		fprintf( stderr, 	"dxl_read: out of range device ID.\n" );
+		return -1;
+	}
+	
+	if ( ( start_ID + nb_device - 1 < 1 ) || ( start_ID + nb_device - 1 > MAX_ID ) )	{
+		fprintf( stderr, 	"dxl_read: out of range device ID.\n" );
+		return -1;
+	}
+	
+	if ( ( data_length != 1 ) && ( data_length != 2 ) && ( data_length != 4 ) )	{
+		fprintf( stderr, 	"dxl_read: out of range data length (should be 1, 2 or 4).\n" );
+		return -1;
+	}
 	
 	// Find the port number
 	
@@ -4187,7 +4203,7 @@ int dxl_read( char*			port_name,
 	
 	// Add read instructions
 	
-	for ( i = start_ID, i < start_ID + nb_device; i++ )	{
+	for ( i = start_ID; i < start_ID + nb_device; i++ )	{
 		dxl_addparam_result = groupBulkReadAddParam( group_num, i, start_address, data_length );
 		if ( !dxl_addparam_result )	{
 			fprintf( stderr, 	"dxl_read: unable to add read instruction in bulk read.\n" );
@@ -4200,16 +4216,16 @@ int dxl_read( char*			port_name,
 	
 	groupBulkReadTxRxPacket( group_num );
 	
-	if ( ( dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS )	{
+	if ( ( dxl_comm_result = getLastTxRxResult(port_num, protocol )) != COMM_SUCCESS )	{
 		fprintf( stderr, 	"dxl_read: error during bulk read.\n" );
-		printTxRxResult( PROTOCOL_VERSION, dxl_comm_result );
+		printTxRxResult( protocol, dxl_comm_result );
 		groupBulkReadClearParam( group_num );
 		return -3;
 	}
 	
 	// Check if data is available
 	
-	for ( i = start_ID, i < start_ID + nb_device; i++ )	{
+	for ( i = start_ID; i < start_ID + nb_device; i++ )	{
 		if ( !groupBulkReadIsAvailable( group_num, i, start_address, data_length ) )	{
 			fprintf( stderr, 	"dxl_read: missing bulk read data from device %d.\n", i );
 			groupBulkReadClearParam( group_num );
@@ -4219,21 +4235,14 @@ int dxl_read( char*			port_name,
 	
 	// Extract data
 	
-	data_pointer8 = data_pointer16 = data_pointer32 = data;
-	for ( i = start_ID, i < start_ID + nb_device; i++ )	{
+	for ( i = start_ID; i < start_ID + nb_device; i++ )	{
 		data_read = groupBulkReadGetData( group_num, i, start_address, data_length );
-		switch( data_length )	{
-			case 1:
-				break;
-			
-			case 2:
-				break;
-			
-			case 4:
-				break;
-		}
-	
-	
+		if( sign )
+			data[i-start_ID] = (double)(*((int32_t*)(&data_read)));
+		else
+			data[i-start_ID] = (double)data_read;
+	}
+		
 	return 0;
 }
  
@@ -4620,6 +4629,9 @@ int dxl_ping( char *port_name,
  */
 int main( int argc, char *argv[] )
 {
+	double* data;
+	int			i;
+	
   // Manage parameters
   
   if ( argc <= 1 )
@@ -4669,6 +4681,49 @@ int main( int argc, char *argv[] )
 			exit( EXIT_SUCCESS );
 	}
 	
+	// read command
+	
+	if ( !strcmp( argv[1], "read" ) )	{
+		if ( argc != 10 )
+			goto display_help;
+			
+		// Open device
+		if ( dxl_open( argv[2], atoi( argv[3] ) ) )	{
+			fprintf( stderr, "dxl: dxl_open returned an error.\n" );
+			exit( EXIT_FAILURE );
+		}
+		
+		// Bulk read
+		data = malloc( (u_int8_t)atoi( argv[5] ) * sizeof( double ) );
+		if ( dxl_read( 	argv[2],
+										(u_int8_t)atoi( argv[6] ),
+										(u_int8_t)atoi( argv[4] ),
+										(u_int8_t)atoi( argv[5] ),
+										(u_int8_t)atoi( argv[7] ),
+										(u_int8_t)atoi( argv[8] ),
+										(u_int8_t)atoi( argv[9] ),
+										data ) )	{
+			fprintf( stderr, "dxl: dxl_read returned an error.\n" );
+			free( data );
+			dxl_close( argv[2] );
+			exit( EXIT_FAILURE );
+		}
+		else
+		{
+			// Display result
+			
+			printf( "dxl_read: reading %d bytes at address %d...\n", 
+							(u_int8_t)atoi( argv[8] ),
+							(u_int8_t)atoi( argv[7] ) );
+			for( i = 0; i < (u_int8_t)atoi( argv[5] ); i++ )
+				printf( "ID%d: %lld\n", (u_int8_t)atoi( argv[8] ) + i, (long long)data[i] );
+			
+			free( data );
+			dxl_close( argv[2] );
+			exit( EXIT_SUCCESS );
+		}
+	}
+	
 	// Default action
 		
 	display_help:
@@ -4697,5 +4752,16 @@ int main( int argc, char *argv[] )
 	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
 	printf( "\t\t"  TERM_DIM "devid" TERM_RESET " is the device ID of the targeted Dynamixel actuator (eg 1).\n" );
 	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
+  // read
+	printf( TERM_BRIGHT "\read" TERM_RESET TERM_DIM " portname baudrate startid nbid proto addr length sign\n" TERM_RESET );
+	printf( "\t\tDisplay specific register values of a range of given devices.\n" );
+	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
+	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
+	printf( "\t\t"  TERM_DIM "startid" TERM_RESET " is the device ID of the first targeted Dynamixel actuator (eg 1).\n" );
+	printf( "\t\t"  TERM_DIM "nbid" TERM_RESET " is the number of targeted Dynamixel actuators starting from startid(eg 1).\n" );
+	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
+	printf( "\t\t"  TERM_DIM "addr" TERM_RESET " is the address of the register that should be read on all devices.\n" );
+	printf( "\t\t"  TERM_DIM "length" TERM_RESET " is the size of the register that should be read (1, 2 or 4).\n" );
+	printf( "\t\t"  TERM_DIM "sign" TERM_RESET " is the sign of the integer value to be read (1 = signed, 0 = unsigned).\n" );
   exit( EXIT_SUCCESS );
 }
