@@ -4242,6 +4242,9 @@ int dxl_read( char*			port_name,
 		else
 			data[i-start_ID] = (double)data_read;
 	}
+	
+	// Clear bulk read instructions buffer
+	groupBulkReadClearParam( group_num );
 		
 	return 0;
 }
@@ -4712,7 +4715,7 @@ int main( int argc, char *argv[] )
 		{
 			// Display result
 			
-			printf( "dxl_read: reading %d bytes at address %d...\n", 
+			printf( "dxl_read: reading %d byte(s) at address %d ...\n", 
 							(u_int8_t)atoi( argv[8] ),
 							(u_int8_t)atoi( argv[7] ) );
 			for( i = 0; i < (u_int8_t)atoi( argv[5] ); i++ )
@@ -4753,7 +4756,7 @@ int main( int argc, char *argv[] )
 	printf( "\t\t"  TERM_DIM "devid" TERM_RESET " is the device ID of the targeted Dynamixel actuator (eg 1).\n" );
 	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
   // read
-	printf( TERM_BRIGHT "\read" TERM_RESET TERM_DIM " portname baudrate startid nbid proto addr length sign\n" TERM_RESET );
+	printf( TERM_BRIGHT "\tread" TERM_RESET TERM_DIM " portname baudrate startid nbid proto addr length sign\n" TERM_RESET );
 	printf( "\t\tDisplay specific register values of a range of given devices.\n" );
 	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
 	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
