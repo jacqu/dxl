@@ -4142,7 +4142,7 @@ void dxl_close( char *port_name )	{
  * 		data_length:		1, 2 or 4
  * 		sign:						0 = unsigned int; 1 = signed int
  * 		data:						pointer where data are written.
- * 										Should be an array of double
+ * 										Should be an array of double with nb_device allocated elements.
  * 
  * 	Return value:
  *  	0: 				success
@@ -4216,7 +4216,7 @@ int dxl_read( char*			port_name,
 	
 	groupBulkReadTxRxPacket( group_num );
 	
-	if ( ( dxl_comm_result = getLastTxRxResult(port_num, protocol )) != COMM_SUCCESS )	{
+	if ( ( dxl_comm_result = getLastTxRxResult( port_num, protocol ) ) != COMM_SUCCESS )	{
 		fprintf( stderr, 	"dxl_read: error during bulk read.\n" );
 		printTxRxResult( protocol, dxl_comm_result );
 		groupBulkReadClearParam( group_num );
@@ -4246,6 +4246,109 @@ int dxl_read( char*			port_name,
 	// Clear bulk read instructions buffer
 	groupBulkReadClearParam( group_num );
 		
+	return 0;
+}
+
+/*
+ * 
+ *	dxl_write: sync write data on consecutive IDs
+ * 
+ * 	Parameters:
+ * 		port_name: 			name of the serial device (usually /dev/ttyUSB0)
+ * 		protocol:				1 or 2
+ * 		start_ID:				ID of the first device
+ * 		nb_device:			number of accessed devices
+ * 		start_address:	register address to be written
+ * 		data_length:		1, 2 or 4
+ * 		data:						pointer where data are stored.
+ * 										Should be an array of double with nb_device elements.
+ * 
+ * 	Return value:
+ *  	0: 				success
+ * 		<0: 			error
+ * 
+ */
+int dxl_write(	char*			port_name,
+								u_int8_t	protocol,
+								u_int8_t 	start_ID,
+								u_int8_t	nb_device,
+								u_int8_t	start_address,
+								u_int8_t	data_length,
+								double*		data )	{
+	int 			port_num, 
+						group_num,
+						dxl_comm_result,
+						i;
+	uint8_t 	dxl_addparam_result;
+	int32_t		data_write;
+	
+	// Consistency check
+	
+	if ( ( protocol != 1 ) && ( protocol != 2 ) )	{
+		fprintf( stderr, 	"dxl_write: unknown protocol version.\n" );
+		return -1;
+	}
+	
+	if ( ( start_ID < 1 ) || ( start_ID > MAX_ID ) )	{
+		fprintf( stderr, 	"dxl_write: out of range device ID.\n" );
+		return -1;
+	}
+	
+	if ( ( start_ID + nb_device - 1 < 1 ) || ( start_ID + nb_device - 1 > MAX_ID ) )	{
+		fprintf( stderr, 	"dxl_write: out of range device ID.\n" );
+		return -1;
+	}
+	
+	if ( ( data_length != 1 ) && ( data_length != 2 ) && ( data_length != 4 ) )	{
+		fprintf( stderr, 	"dxl_write: out of range data length (should be 1, 2 or 4).\n" );
+		return -1;
+	}
+	
+	// Find the port number
+	
+	port_num = portName2portNum( port_name );
+	
+	if ( port_num < 0 )	{
+		fprintf( stderr, 	"dxl_write: %s seems not be open.\n", 
+											port_name );
+		return -1;
+	}
+	
+	// Initialize sync write structure
+	
+	group_num = groupSyncWrite( port_num, protocol, start_address, data_length );
+	
+	// Add write instructions
+	
+	for ( i = start_ID; i < start_ID + nb_device; i++ )	{
+		if ( data[i] < 0 )	{
+			data_write = (int32_t)data[i];
+			dxl_addparam_result = groupSyncWriteAddParam( group_num, i, *((uint32_t*)(&data_write)), data_length );	
+		}
+		else
+			dxl_addparam_result = groupSyncWriteAddParam( group_num, i, (uint32_t)data[i], data_length );
+		
+		if ( !dxl_addparam_result )	{
+			fprintf( stderr, 	"dxl_read: unable to add write instruction in sync write.\n" );
+			groupSyncWriteClearParam( group_num );
+			return -2;
+		}
+	}
+	
+	// Sync write
+	
+	groupSyncWriteTxPacket( group_num );
+	if ( ( dxl_comm_result = getLastTxRxResult( port_num, protocol ) ) != COMM_SUCCESS )	{
+		fprintf( stderr, 	"dxl_write: error during sync write.\n" );
+		printTxRxResult( protocol, dxl_comm_result );
+		groupSyncWriteClearParam( group_num );
+		return -3;
+	}
+	
+	// Clear sync write structure
+	
+	groupSyncWriteClearParam( group_num );
+	
 	return 0;
 }
  
@@ -4689,6 +4792,12 @@ int main( int argc, char *argv[] )
 	if ( !strcmp( argv[1], "read" ) )	{
 		if ( argc != 10 )
 			goto display_help;
+		
+		// Consistency check
+		if ( atoi( argv[5] ) < 1 )	{
+			fprintf( stderr, "dxl: read command requires at least 1 device to be read.\n" );
+			exit( EXIT_FAILURE );
+		}
 			
 		// Open device
 		if ( dxl_open( argv[2], atoi( argv[3] ) ) )	{
@@ -4727,6 +4836,54 @@ int main( int argc, char *argv[] )
 		}
 	}
 	
+	// write command
+	
+	if ( !strcmp( argv[1], "write" ) )	{
+		if ( argc != 9 + (u_int8_t)atoi( argv[5] ) )
+			goto display_help;
+		
+		// Consistency check
+		if ( atoi( argv[5] ) < 1 )	{
+			fprintf( stderr, "dxl: write command requires at least 1 device to be written.\n" );
+			exit( EXIT_FAILURE );
+		}
+			
+		// Open device
+		if ( dxl_open( argv[2], atoi( argv[3] ) ) )	{
+			fprintf( stderr, "dxl: dxl_open returned an error.\n" );
+			exit( EXIT_FAILURE );
+		}
+		
+		// Sync write
+		data = malloc( (u_int8_t)atoi( argv[5] ) * sizeof( double ) );
+		for( i = 0; i < (u_int8_t)atoi( argv[5] ); i++ )
+			data[i] = (double)atoi( argv[9+i] );
+		if ( dxl_write( argv[2],
+										(u_int8_t)atoi( argv[6] ),
+										(u_int8_t)atoi( argv[4] ),
+										(u_int8_t)atoi( argv[5] ),
+										(u_int8_t)atoi( argv[7] ),
+										(u_int8_t)atoi( argv[8] ),
+										data ) )	{
+			fprintf( stderr, "dxl: dxl_write returned an error.\n" );
+			free( data );
+			dxl_close( argv[2] );
+			exit( EXIT_FAILURE );
+		}
+		else
+		{
+			// Display result
+			
+			printf( "dxl_write: writing %d byte(s) at address %d ...", 
+							(u_int8_t)atoi( argv[8] ),
+							(u_int8_t)atoi( argv[7] ) );
+			printf( "done\n" );
+			free( data );
+			dxl_close( argv[2] );
+			exit( EXIT_SUCCESS );
+		}
+	}
+	
 	// Default action
 		
 	display_help:
@@ -4757,7 +4914,7 @@ int main( int argc, char *argv[] )
 	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
   // read
 	printf( TERM_BRIGHT "\tread" TERM_RESET TERM_DIM " portname baudrate startid nbid proto addr length sign\n" TERM_RESET );
-	printf( "\t\tDisplay specific register values of a range of given devices.\n" );
+	printf( "\t\tDisplay specific register values from a range of given devices.\n" );
 	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
 	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
 	printf( "\t\t"  TERM_DIM "startid" TERM_RESET " is the device ID of the first targeted Dynamixel actuator (eg 1).\n" );
@@ -4766,5 +4923,16 @@ int main( int argc, char *argv[] )
 	printf( "\t\t"  TERM_DIM "addr" TERM_RESET " is the address of the register that should be read on all devices.\n" );
 	printf( "\t\t"  TERM_DIM "length" TERM_RESET " is the size of the register that should be read (1, 2 or 4).\n" );
 	printf( "\t\t"  TERM_DIM "sign" TERM_RESET " is the sign of the integer value to be read (1 = signed, 0 = unsigned).\n" );
-  exit( EXIT_SUCCESS );
+  // write
+	printf( TERM_BRIGHT "\twrite" TERM_RESET TERM_DIM " portname baudrate startid nbid proto addr length data1 data2 ...datai\n" TERM_RESET );
+	printf( "\t\tWrite specific register values to a range of given devices.\n" );
+	printf( "\t\t"  TERM_DIM "portname" TERM_RESET " is the serial device (eg /dev/ttyUSB0).\n" );
+	printf( "\t\t"  TERM_DIM "baudrate" TERM_RESET " is the baud rate of the serial link (eg 57600).\n" );
+	printf( "\t\t"  TERM_DIM "startid" TERM_RESET " is the device ID of the first targeted Dynamixel actuator (eg 1).\n" );
+	printf( "\t\t"  TERM_DIM "nbid" TERM_RESET " is the number of targeted Dynamixel actuators starting from startid(eg 1).\n" );
+	printf( "\t\t"  TERM_DIM "proto" TERM_RESET " is the protocol used by the targeted Dynamixel actuator (1 or 2).\n" );
+	printf( "\t\t"  TERM_DIM "addr" TERM_RESET " is the address of the register that should be read on all devices.\n" );
+	printf( "\t\t"  TERM_DIM "length" TERM_RESET " is the size of the register that should be read (1, 2 or 4).\n" );
+	printf( "\t\t"  TERM_DIM "datai" TERM_RESET " is the value of the data that should be written on device IDi\n" );
+	exit( EXIT_SUCCESS );
 }
