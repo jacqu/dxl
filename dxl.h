@@ -455,10 +455,15 @@ void    		groupSyncWriteTxPacket      (int group_num);
  * 
  * dxl high level functions definitions
  * 
- * 
  */
-
-
+int 	dxl_open						( char *port_name, int baudrate );
+void 	dxl_close						( char *port_name );
+int 	dxl_read						( char*	port_name, u_int8_t	protocol, u_int8_t start_ID, u_int8_t	nb_device, u_int8_t	start_address, u_int8_t	data_length, u_int8_t	sign, double*	data );
+int 	dxl_write						( char* port_name, u_int8_t protocol, u_int8_t start_ID, u_int8_t nb_device, u_int8_t start_address, u_int8_t data_length, double*	data );
+char* dxl_model_nb_2_name	( uint16_t	dxl_model_number );
+int 	dxl_scan						( char *port_name );
+int 	dxl_status					( char *port_name, int baudrate, uint8_t devid, int proto );
+int 	dxl_ping						( char *port_name, int baudrate, uint8_t devid, int proto );
 
 /*
  * 
@@ -503,7 +508,7 @@ typedef struct
 #define DXL_REG_DESCRIPTION_LENGTH											50
 
 // XM430-W210 actuator registers
-dxl_registers_struct_type dxl_reg_XM_430_W210[] =	{
+dxl_registers_struct_type dxl_reg_XM430_W210[] =	{
 	{	DXL_REG_MEM_EEPROM, 0,		2,	"XM430-W210", "Model number", 
 		DXL_REG_ACCESS_R, 1030,
 		DXL_REG_TYPE_UINT16, 0, 65535, 1.0, DXL_REG_NO_UNIT },
@@ -1340,7 +1345,7 @@ dxl_registers_struct_type dxl_reg_MX64[] =	{
 
 // List of actuators register definitions
 dxl_registers_struct_type* dxl_reg_list[] = {
-	dxl_reg_XM_430_W210,
+	dxl_reg_XM430_W210,
 	dxl_reg_XM430_W350,
 	dxl_reg_MX12W,
 	dxl_reg_MX28,
