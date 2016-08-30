@@ -32,7 +32,7 @@
 
 // Version
 #define DXL_VERSION_MAJOR								0
-#define DXL_VERSION_MINOR								2
+#define DXL_VERSION_MINOR								5
 
 // Special IDs
 #define NOT_USED_ID         						0xFF		// 255
