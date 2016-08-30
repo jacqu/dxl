@@ -31,7 +31,7 @@
 /*
  * dxl.c : merging all of the Dynamixel lib code into one file
  * 
- * Author: Ryu Woon Jung (Leon)
+ * Original author: Ryu Woon Jung (Leon)
  * Modifications : Jacques Gangloff (jacques.gangloff@unistra.fr)
  * 
  * Compile with : gcc -Wall -o dxl dxl.c
