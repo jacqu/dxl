@@ -4858,7 +4858,7 @@ int main( int argc, char *argv[] )
 							(u_int8_t)atoi( argv[8] ),
 							(u_int8_t)atoi( argv[7] ) );
 			for( i = 0; i < (u_int8_t)atoi( argv[5] ); i++ )
-				printf( "ID%d: %lld\n", (u_int8_t)atoi( argv[8] ) + i, (long long)data[i] );
+				printf( "ID%d: %lld\n", (u_int8_t)atoi( argv[4] ) + i, (long long)data[i] );
 			
 			free( data );
 			dxl_close( argv[2] );
