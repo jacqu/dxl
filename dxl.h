@@ -1,3 +1,33 @@
+/*******************************************************************************
+* Copyright (c) 2016, ROBOTIS CO., LTD.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* * Redistributions of source code must retain the above copyright notice, this
+*   list of conditions and the following disclaimer.
+*
+* * Redistributions in binary form must reproduce the above copyright notice,
+*   this list of conditions and the following disclaimer in the documentation
+*   and/or other materials provided with the distribution.
+*
+* * Neither the name of ROBOTIS nor the names of its
+*   contributors may be used to endorse or promote products derived from
+*   this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*******************************************************************************/
+
 /* External defines */
 
 // Version
@@ -528,7 +558,7 @@ dxl_registers_struct_type dxl_reg_XM_430_W210[] =	{
 		
 	{	DXL_REG_MEM_EEPROM, 36,		2,	"PWM Limit", "Maximum PWM Limit",
 		DXL_REG_ACCESS_RW, 885,
-		DXL_REG_TYPE_UINT16, 0, 885, 0.11299435028249, "%%" },
+		DXL_REG_TYPE_UINT16, 0, 885, 0.11299435028249, "%" },
 		
 	{	DXL_REG_MEM_EEPROM, 38,		2,	"Current Limit", "Maximum Current Limit",
 		DXL_REG_ACCESS_RW, 1193,
@@ -604,7 +634,7 @@ dxl_registers_struct_type dxl_reg_XM_430_W210[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		100,	2,	"Goal PWM", "Target PWM Value",
 		DXL_REG_ACCESS_RW, DXL_REG_UNDEFINED_INITIAL_VALUE,
-		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%%" },
+		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		102,	2,	"Goal Current", "Target Current Value",
 		DXL_REG_ACCESS_RW, DXL_REG_UNDEFINED_INITIAL_VALUE,
@@ -640,7 +670,7 @@ dxl_registers_struct_type dxl_reg_XM_430_W210[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		124,	2,	"Present PWM", "Current PWM Value",
 		DXL_REG_ACCESS_R, DXL_REG_UNDEFINED_INITIAL_VALUE,
-		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%%" },
+		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		126,	2,	"Present Current", "Current Current Value",
 		DXL_REG_ACCESS_R, DXL_REG_UNDEFINED_INITIAL_VALUE,
@@ -728,7 +758,7 @@ dxl_registers_struct_type dxl_reg_XM430_W350[] =	{
 		
 	{	DXL_REG_MEM_EEPROM, 36,		2,	"PWM Limit", "Maximum PWM Limit",
 		DXL_REG_ACCESS_RW, 885,
-		DXL_REG_TYPE_UINT16, 0, 885, 0.11299435028249, "%%" },
+		DXL_REG_TYPE_UINT16, 0, 885, 0.11299435028249, "%" },
 		
 	{	DXL_REG_MEM_EEPROM, 38,		2,	"Current Limit", "Maximum Current Limit",
 		DXL_REG_ACCESS_RW, 1193,
@@ -804,7 +834,7 @@ dxl_registers_struct_type dxl_reg_XM430_W350[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		100,	2,	"Goal PWM", "Target PWM Value",
 		DXL_REG_ACCESS_RW, DXL_REG_UNDEFINED_INITIAL_VALUE,
-		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%%" },
+		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		102,	2,	"Goal Current", "Target Current Value",
 		DXL_REG_ACCESS_RW, DXL_REG_UNDEFINED_INITIAL_VALUE,
@@ -840,7 +870,7 @@ dxl_registers_struct_type dxl_reg_XM430_W350[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		124,	2,	"Present PWM", "Current PWM Value",
 		DXL_REG_ACCESS_R, DXL_REG_UNDEFINED_INITIAL_VALUE,
-		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%%" },
+		DXL_REG_TYPE_SINT16, -885, 885, 0.11299435028249, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		126,	2,	"Present Current", "Current Current Value",
 		DXL_REG_ACCESS_R, DXL_REG_UNDEFINED_INITIAL_VALUE,
@@ -917,7 +947,7 @@ dxl_registers_struct_type dxl_reg_MX28[] =	{
 		
 	{	DXL_REG_MEM_EEPROM, 14,	2,	"Max Torque", "Maximum Torque",
 		DXL_REG_ACCESS_RW,	255,
-		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%%" },
+		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%" },
 		
 	{	DXL_REG_MEM_EEPROM, 16,	1,	"Status Return Level", "Status Return Level",
 		DXL_REG_ACCESS_RW,	2,
@@ -969,7 +999,7 @@ dxl_registers_struct_type dxl_reg_MX28[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		34,	2,	"Torque Limit", "Torque Limit",
 		DXL_REG_ACCESS_RW,	255,
-		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%%" },
+		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		36,	2,	"Present Position", "Current Position",
 		DXL_REG_ACCESS_R,		DXL_REG_UNDEFINED_INITIAL_VALUE,
@@ -981,7 +1011,7 @@ dxl_registers_struct_type dxl_reg_MX28[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		40,	2,	"Present Torque", "Current Torque",
 		DXL_REG_ACCESS_R,		DXL_REG_UNDEFINED_INITIAL_VALUE,
-		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%%" },
+		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		42,	1,	"Present Voltage", "Current Supplied Voltage",
 		DXL_REG_ACCESS_R,		DXL_REG_UNDEFINED_INITIAL_VALUE,
@@ -1005,7 +1035,7 @@ dxl_registers_struct_type dxl_reg_MX28[] =	{
 		
 	{	DXL_REG_MEM_RAM, 		48,	1,	"Punch(L)", "Lowest byte of Punch",
 		DXL_REG_ACCESS_RW,	0,
-		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%%" },
+		DXL_REG_TYPE_UINT16, 0, 1023, 0.1, "%" },
 		
 	{	DXL_REG_MEM_RAM, 		73,	1,	"Goal Acceleration", "Goal Acceleration",
 		DXL_REG_ACCESS_RW,	0,
