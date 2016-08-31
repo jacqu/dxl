@@ -4197,7 +4197,7 @@ int dxl_read( char*			port_name,
 							u_int8_t	protocol,
 							u_int8_t 	start_ID,
 							u_int8_t	nb_device,
-							u_int8_t	start_address,
+							u_int16_t	start_address,
 							u_int8_t	data_length,
 							u_int8_t	sign,
 							double*		data )	{
@@ -4334,7 +4334,7 @@ int dxl_write(	char*			port_name,
 								u_int8_t	protocol,
 								u_int8_t 	start_ID,
 								u_int8_t	nb_device,
-								u_int8_t	start_address,
+								u_int16_t	start_address,
 								u_int8_t	data_length,
 								double*		data )	{
 	int 								port_num, 
@@ -4898,7 +4898,7 @@ int main( int argc, char *argv[] )
 										(u_int8_t)atoi( argv[6] ),
 										(u_int8_t)atoi( argv[4] ),
 										(u_int8_t)atoi( argv[5] ),
-										(u_int8_t)atoi( argv[7] ),
+										(u_int16_t)atoi( argv[7] ),
 										(u_int8_t)atoi( argv[8] ),
 										(u_int8_t)atoi( argv[9] ),
 										data ) )	{
@@ -4913,7 +4913,7 @@ int main( int argc, char *argv[] )
 			
 			printf( "dxl_read: reading %d byte(s) at address %d ...\n", 
 							(u_int8_t)atoi( argv[8] ),
-							(u_int8_t)atoi( argv[7] ) );
+							(u_int16_t)atoi( argv[7] ) );
 			for( i = 0; i < (u_int8_t)atoi( argv[5] ); i++ )
 				printf( "ID%d: %lld\n", (u_int8_t)atoi( argv[4] ) + i, (long long)data[i] );
 			
@@ -4948,13 +4948,13 @@ int main( int argc, char *argv[] )
 		
 		printf( "dxl_write: writing %d byte(s) at address %d ... ", 
 						(u_int8_t)atoi( argv[8] ),
-						(u_int8_t)atoi( argv[7] ) );
+						(u_int16_t)atoi( argv[7] ) );
 							
 		if ( dxl_write( argv[2],
 										(u_int8_t)atoi( argv[6] ),
 										(u_int8_t)atoi( argv[4] ),
 										(u_int8_t)atoi( argv[5] ),
-										(u_int8_t)atoi( argv[7] ),
+										(u_int16_t)atoi( argv[7] ),
 										(u_int8_t)atoi( argv[8] ),
 										data ) )	{
 			fprintf( stderr, "\ndxl: dxl_write returned an error.\n" );

@@ -458,8 +458,8 @@ void    		groupSyncWriteTxPacket      (int group_num);
  */
 int 	dxl_open						( char *port_name, int baudrate );
 void 	dxl_close						( char *port_name );
-int 	dxl_read						( char*	port_name, u_int8_t	protocol, u_int8_t start_ID, u_int8_t	nb_device, u_int8_t	start_address, u_int8_t	data_length, u_int8_t	sign, double*	data );
-int 	dxl_write						( char* port_name, u_int8_t protocol, u_int8_t start_ID, u_int8_t nb_device, u_int8_t start_address, u_int8_t data_length, double*	data );
+int 	dxl_read						( char*	port_name, u_int8_t	protocol, u_int8_t start_ID, u_int8_t	nb_device, u_int16_t start_address, u_int8_t data_length, u_int8_t sign, double* data );
+int 	dxl_write						( char* port_name, u_int8_t protocol, u_int8_t start_ID, u_int8_t nb_device, u_int16_t start_address, u_int8_t data_length, double*	data );
 char* dxl_model_nb_2_name	( uint16_t	dxl_model_number );
 int 	dxl_scan						( char *port_name );
 int 	dxl_status					( char *port_name, int baudrate, uint8_t devid, int proto );
