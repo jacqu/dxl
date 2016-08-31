@@ -14,7 +14,7 @@ DXL_POS1=-511
 DXL_POS2=511
 
 ## Dynamixel initialization sequence
-# Operating mode 4: extende position control
+# Operating mode 4: extended position control
 ./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 11 1 4
 # Position D gain
 ./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 80 2 0
@@ -26,6 +26,8 @@ DXL_POS2=511
 ./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 88 2 0
 # Position FF1 gain
 ./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 90 2 0
+# LED on
+./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 65 1 1
 # Torque enable
 ./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 64 1 1
 
@@ -50,5 +52,7 @@ done
 ## Cleanup
 # Torque disable
 ./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 64 1 0
+# LED off
+./dxl write $DXL_PORTNAME $DXL_BAUDRATE $DXL_STARTID $DXL_NBID $DXL_PROTO 65 1 0
 # Restore tty behavior
 if [ -t 0 ]; then stty sane; fi

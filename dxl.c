@@ -57,6 +57,10 @@
 #define True                						1
 #define False               						0
 
+#define DEFAULT_BAUDRATE								1000000
+#define LATENCY_TIMER_INIT							1000  // msec (initial USB latency timer)
+#define LATENCY_TIMER										5  		// msec (USB latency timer)
+
 // Terminal escape codes
 #define TERM_RESET   										"\033[0m"								/* Reset */
 #define TERM_BRIGHT											"\033[1m"								/* Bright */
@@ -254,9 +258,6 @@ typedef struct
 
 /* Global variables */
 
-static const int 												DEFAULT_BAUDRATE = 1000000;
-int 																		LATENCY_TIMER = 1000;  // msec (USB latency timer)
-
 int     																g_used_port_num;
 uint8_t    															*g_is_using;
 
@@ -449,8 +450,17 @@ int writePortLinux(int port_num, uint8_t *packet, int length)
 
 void setPacketTimeoutLinux(int port_num, uint16_t packet_length)
 {
+	// Workaround for Rapsberry Pi FTDI driver: first read may need more time
+	static uint8_t	first_time = 1;
+	
   portData[port_num].packet_start_time = getCurrentTimeLinux();
-  portData[port_num].packet_timeout = (portData[port_num].tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
+  
+  if ( first_time )	{
+		portData[port_num].packet_timeout = (portData[port_num].tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER_INIT * 2.0) + 2.0;
+		first_time = 0;
+	}
+	else
+		portData[port_num].packet_timeout = (portData[port_num].tx_time_per_byte * (double)packet_length) + (LATENCY_TIMER * 2.0) + 2.0;
 }
 
 void setPacketTimeoutMSecLinux(int port_num, double msec)
@@ -4424,11 +4434,6 @@ int dxl_scan_baudrates[] = {	9600,
 int dxl_scan( char *port_name )	{
 	int 			port_num, i, j, k;
 	uint16_t	dxl_model_number;
-	int				old_latency_timer;
-	
-	// Reduce latency timer to minimum
-  old_latency_timer = LATENCY_TIMER;
-  LATENCY_TIMER = 10;
 	
 	// Get port number associated to port name
 	port_num = portHandler( port_name );
@@ -4440,7 +4445,6 @@ int dxl_scan( char *port_name )	{
   if ( !openPort( port_num ) )
   {
     fprintf( stderr, "dxl_scan: error while opening port %s.\n", port_name );
-    LATENCY_TIMER = old_latency_timer;
 		return -1;
   }
 	
@@ -4488,9 +4492,6 @@ int dxl_scan( char *port_name )	{
 	
 	// Close port
   closePort( port_num );
-  
-  // Reset latency timer to initial value
-  LATENCY_TIMER = old_latency_timer;
 
 	return 0;
 }
