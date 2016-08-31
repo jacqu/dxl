@@ -53,8 +53,8 @@
 #include "dxl.h"
 
 /* Flags */
-
-#define DXL_PROFILING													// Add timing measurements messages
+//#define DXL_API																// No main: for use as an API
+//#define DXL_PROFILING													// Add timing measurements messages
 
 /* Private defines */
 
@@ -4814,6 +4814,7 @@ int dxl_ping( char *port_name,
 	return 0;
 }
 
+#ifndef DXL_API
 /*
  * 
  * main
@@ -5024,3 +5025,4 @@ int main( int argc, char *argv[] )
 	printf( "\t\t"  TERM_DIM "datai" TERM_RESET " is the value of the data that should be written on device IDi\n" );
 	exit( EXIT_SUCCESS );
 }
+#endif
