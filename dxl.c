@@ -52,6 +52,10 @@
 #include <linux/serial.h>
 #include "dxl.h"
 
+/* Flags */
+
+#define DXL_PROFILING													// Add timing measurements messages
+
 /* Private defines */
 
 #define True                						1
@@ -4198,12 +4202,20 @@ int dxl_read( char*			port_name,
 							u_int8_t	sign,
 							double*		data )	{
 
-	int 			port_num, 
-						group_num,
-						dxl_comm_result,
-						i;
-	uint8_t 	dxl_addparam_result;
-	uint32_t	data_read;
+	int 								port_num, 
+											group_num,
+											dxl_comm_result,
+											i;
+	uint8_t 						dxl_addparam_result;
+	uint32_t						data_read;
+	#ifdef DXL_PROFILING
+	struct timespec 		before, after;
+  unsigned long long 	inst_delay;
+  #endif
+	
+	#ifdef DXL_PROFILING
+	clock_gettime( CLOCK_MONOTONIC, &before );
+	#endif
 	
 	// Consistency check
 	
@@ -4284,7 +4296,17 @@ int dxl_read( char*			port_name,
 	}
 	
 	// Clear bulk read instructions buffer
+	
 	groupBulkReadClearParam( group_num );
+	
+	// Display timing
+	
+	#ifdef DXL_PROFILING
+	clock_gettime( CLOCK_MONOTONIC, &after );
+	inst_delay = 	( after.tv_sec - before.tv_sec ) * 1000000 +
+								( after.tv_nsec - before.tv_nsec ) / 1000;
+	printf( "dxl_read: instruction duration = %llu us.\n", inst_delay );
+	#endif
 		
 	return 0;
 }
@@ -4315,12 +4337,20 @@ int dxl_write(	char*			port_name,
 								u_int8_t	start_address,
 								u_int8_t	data_length,
 								double*		data )	{
-	int 			port_num, 
-						group_num,
-						dxl_comm_result,
-						i;
-	uint8_t 	dxl_addparam_result;
-	int32_t		data_write;
+	int 								port_num, 
+											group_num,
+											dxl_comm_result,
+											i;
+	uint8_t 						dxl_addparam_result;
+	int32_t							data_write;
+	#ifdef DXL_PROFILING
+	struct timespec 		before, after;
+  unsigned long long 	inst_delay;
+  #endif
+	
+	#ifdef DXL_PROFILING
+	clock_gettime( CLOCK_MONOTONIC, &before );
+	#endif
 	
 	// Consistency check
 	
@@ -4388,6 +4418,15 @@ int dxl_write(	char*			port_name,
 	// Clear sync write structure
 	
 	groupSyncWriteClearParam( group_num );
+	
+	// Display timing 
+	
+	#ifdef DXL_PROFILING
+	clock_gettime( CLOCK_MONOTONIC, &after );
+	inst_delay = 	( after.tv_sec - before.tv_sec ) * 1000000 +
+								( after.tv_nsec - before.tv_nsec ) / 1000;
+	printf( "dxl_write: instruction duration = %llu us.\n", inst_delay );
+	#endif
 	
 	return 0;
 }
@@ -4527,7 +4566,14 @@ int dxl_status( char *port_name,
 	uint32_t										buf_size;
 	long long										reg_value;
 	char												buf_display[DXL_REG_DESCRIPTION_LENGTH+1];
+	#ifdef DXL_PROFILING
+	struct timespec 						before, after;
+  unsigned long long 					inst_delay;
+  #endif
 	
+	#ifdef DXL_PROFILING
+	clock_gettime( CLOCK_MONOTONIC, &before );
+	#endif
 	// First, try to get the device number with a ping
 	
 	// Get port number associated to port name
@@ -4602,6 +4648,15 @@ int dxl_status( char *port_name,
 		closePort( port_num );
 		return -7;
 	}
+	
+	// Display timing
+	
+	#ifdef DXL_PROFILING
+	clock_gettime( CLOCK_MONOTONIC, &after );
+	inst_delay = 	( after.tv_sec - before.tv_sec ) * 1000000 +
+								( after.tv_nsec - before.tv_nsec ) / 1000;
+	printf( "dxl_status: instruction duration = %llu us.\n", inst_delay );
+	#endif
 	
 	// Display results
 	
