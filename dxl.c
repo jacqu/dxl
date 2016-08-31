@@ -336,7 +336,7 @@ int portHandlerLinux(const char *port_name)
     }
     else
     {
-      printf("[PortHandler setup] The port number %d has same device name... reinitialize port number %d!!\n", port_num, port_num);
+      fprintf(stderr,"[PortHandler setup] The port number %d has same device name... reinitialize port number %d!!\n", port_num, port_num);
     }
   }
 
@@ -495,7 +495,7 @@ uint8_t setupPortLinux(int port_num, int cflag_baud)
 
   if (portData[port_num].socket_fd < 0)
   {
-    printf("[PortHandlerLinux::SetupPort] Error opening serial port!\n");
+    fprintf(stderr,"[PortHandlerLinux::SetupPort] Error opening serial port!\n");
     return False;
   }
 
@@ -524,7 +524,7 @@ uint8_t setCustomBaudrateLinux(int port_num, int speed)
   
   if (ioctl(portData[port_num].socket_fd, TIOCGSERIAL, &ss) != 0)
   {
-    printf("[PortHandlerLinux::SetCustomBaudrate] TIOCGSERIAL failed!\n");
+    fprintf(stderr,"[PortHandlerLinux::SetCustomBaudrate] TIOCGSERIAL failed!\n");
     return False;
   }
 
@@ -534,13 +534,13 @@ uint8_t setCustomBaudrateLinux(int port_num, int speed)
 
   if (closest_speed < speed * 98 / 100 || closest_speed > speed * 102 / 100)
   {
-    printf("[PortHandlerLinux::setCustomBaudrate] Cannot set speed to %d, closest is %d \n", speed, closest_speed);
+    fprintf(stderr,"[PortHandlerLinux::setCustomBaudrate] Cannot set speed to %d, closest is %d \n", speed, closest_speed);
     return False;
   }
 
   if (ioctl(portData[port_num].socket_fd, TIOCSSERIAL, &ss) < 0)
   {
-    printf("[PortHandlerLinux::setCustomBaudrate] TIOCSSERIAL failed!\n");
+    fprintf(stderr,"[PortHandlerLinux::setCustomBaudrate] TIOCSSERIAL failed!\n");
     return False;
   }
 
@@ -1172,39 +1172,39 @@ void printTxRxResult1(int result)
   switch (result)
   {
     case COMM_SUCCESS:
-      printf("[TxRxResult] Communication success.\n");
+      fprintf(stderr,"[TxRxResult] Communication success.\n");
       break;
 
     case COMM_PORT_BUSY:
-      printf("[TxRxResult] Port is in use!\n");
+      fprintf(stderr,"[TxRxResult] Port is in use!\n");
       break;
 
     case COMM_TX_FAIL:
-      printf("[TxRxResult] Failed transmit instruction packet!\n");
+      fprintf(stderr,"[TxRxResult] Failed transmit instruction packet!\n");
       break;
 
     case COMM_RX_FAIL:
-      printf("[TxRxResult] Failed get status packet from device!\n");
+      fprintf(stderr,"[TxRxResult] Failed get status packet from device!\n");
       break;
 
     case COMM_TX_ERROR:
-      printf("[TxRxResult] Incorrect instruction packet!\n");
+      fprintf(stderr,"[TxRxResult] Incorrect instruction packet!\n");
       break;
 
     case COMM_RX_WAITING:
-      printf("[TxRxResult] Now recieving status packet!\n");
+      fprintf(stderr,"[TxRxResult] Now recieving status packet!\n");
       break;
 
     case COMM_RX_TIMEOUT:
-      printf("[TxRxResult] There is no status packet!\n");
+      fprintf(stderr,"[TxRxResult] There is no status packet!\n");
       break;
 
     case COMM_RX_CORRUPT:
-      printf("[TxRxResult] Incorrect status packet!\n");
+      fprintf(stderr,"[TxRxResult] Incorrect status packet!\n");
       break;
 
     case COMM_NOT_AVAILABLE:
-      printf("[TxRxResult] Protocol does not support This function!\n");
+      fprintf(stderr,"[TxRxResult] Protocol does not support This function!\n");
       break;
 
     default:
@@ -1215,25 +1215,25 @@ void printTxRxResult1(int result)
 void printRxPacketError1(uint8_t error)
 {
   if (error & ERRBIT_VOLTAGE)
-    printf("[RxPacketError] Input voltage error!\n");
+    fprintf(stderr,"[RxPacketError] Input voltage error!\n");
 
   if (error & ERRBIT_ANGLE)
-    printf("[RxPacketError] Angle limit error!\n");
+    fprintf(stderr,"[RxPacketError] Angle limit error!\n");
 
   if (error & ERRBIT_OVERHEAT)
-    printf("[RxPacketError] Overheat error!\n");
+    fprintf(stderr,"[RxPacketError] Overheat error!\n");
 
   if (error & ERRBIT_RANGE)
-    printf("[RxPacketError] Out of range error!\n");
+    fprintf(stderr,"[RxPacketError] Out of range error!\n");
 
   if (error & ERRBIT_CHECKSUM)
-    printf("[RxPacketError] Checksum error!\n");
+    fprintf(stderr,"[RxPacketError] Checksum error!\n");
 
   if (error & ERRBIT_OVERLOAD)
-    printf("[RxPacketError] Overload error!\n");
+    fprintf(stderr,"[RxPacketError] Overload error!\n");
 
   if (error & ERRBIT_INSTRUCTION)
-    printf("[RxPacketError] Instruction code error!\n");
+    fprintf(stderr,"[RxPacketError] Instruction code error!\n");
 }
 
 int getLastTxRxResult1(int port_num)
@@ -1261,7 +1261,7 @@ void setDataWrite1(int port_num, uint16_t data_length, uint16_t data_pos, uint32
       break;
 
     default:
-      printf("[Set Data for Write] failed");
+      fprintf(stderr,"[Set Data for Write] failed");
       break;
   }
 }
@@ -1277,7 +1277,7 @@ uint32_t getDataRead1(int port_num, uint16_t data_length, uint16_t data_pos)
     return DXL_MAKEWORD(packetData[port_num].data_read[data_pos + 0], packetData[port_num].data_read[data_pos + 1]);
 
   default:
-    printf("[Set Data Read] failed... ");
+    fprintf(stderr,"[Set Data Read] failed... ");
     return 0;
   }
 }
@@ -1912,39 +1912,39 @@ void printTxRxResult2(int result)
   switch (result)
   {
     case COMM_SUCCESS:
-      printf("[TxRxResult] Communication success.\n");
+      fprintf(stderr,"[TxRxResult] Communication success.\n");
       break;
 
     case COMM_PORT_BUSY:
-      printf("[TxRxResult] Port is in use!\n");
+      fprintf(stderr,"[TxRxResult] Port is in use!\n");
       break;
 
     case COMM_TX_FAIL:
-      printf("[TxRxResult] Failed transmit instruction packet!\n");
+      fprintf(stderr,"[TxRxResult] Failed transmit instruction packet!\n");
       break;
 
     case COMM_RX_FAIL:
-      printf("[TxRxResult] Failed get status packet from device!\n");
+      fprintf(stderr,"[TxRxResult] Failed get status packet from device!\n");
       break;
 
     case COMM_TX_ERROR:
-      printf("[TxRxResult] Incorrect instruction packet!\n");
+      fprintf(stderr,"[TxRxResult] Incorrect instruction packet!\n");
       break;
 
     case COMM_RX_WAITING:
-      printf("[TxRxResult] Now recieving status packet!\n");
+      fprintf(stderr,"[TxRxResult] Now recieving status packet!\n");
       break;
 
     case COMM_RX_TIMEOUT:
-      printf("[TxRxResult] There is no status packet!\n");
+      fprintf(stderr,"[TxRxResult] There is no status packet!\n");
       break;
 
     case COMM_RX_CORRUPT:
-      printf("[TxRxResult] Incorrect status packet!\n");
+      fprintf(stderr,"[TxRxResult] Incorrect status packet!\n");
       break;
 
     case COMM_NOT_AVAILABLE:
-      printf("[TxRxResult] Protocol does not support This function!\n");
+      fprintf(stderr,"[TxRxResult] Protocol does not support This function!\n");
       break;
 
     default:
@@ -1955,7 +1955,7 @@ void printTxRxResult2(int result)
 void printRxPacketError2(uint8_t error)
 {
   if (error & ERRBIT_ALERT_2)
-    printf("[RxPacketError] Hardware error occurred. Check the error at Control Table (Hardware Error Status)!\n");
+    fprintf(stderr,"[RxPacketError] Hardware error occurred. Check the error at Control Table (Hardware Error Status)!\n");
 
   int not_alert_error = error & ~ERRBIT_ALERT_2;
 
@@ -1965,35 +1965,35 @@ void printRxPacketError2(uint8_t error)
       break;
 
     case ERRNUM_RESULT_FAIL_2:
-      printf("[RxPacketError] Failed to process the instruction packet!\n");
+      fprintf(stderr,"[RxPacketError] Failed to process the instruction packet!\n");
       break;
 
     case ERRNUM_INSTRUCTION_2:
-      printf("[RxPacketError] Undefined instruction or incorrect instruction!\n");
+      fprintf(stderr,"[RxPacketError] Undefined instruction or incorrect instruction!\n");
       break;
 
     case ERRNUM_CRC_2:
-      printf("[RxPacketError] CRC doesn't match!\n");
+      fprintf(stderr,"[RxPacketError] CRC doesn't match!\n");
       break;
 
     case ERRNUM_DATA_RANGE_2:
-      printf("[RxPacketError] The data value is out of range!\n");
+      fprintf(stderr,"[RxPacketError] The data value is out of range!\n");
       break;
 
     case ERRNUM_DATA_LENGTH_2:
-      printf("[RxPacketError] The data length does not match as expected!\n");
+      fprintf(stderr,"[RxPacketError] The data length does not match as expected!\n");
       break;
 
     case ERRNUM_DATA_LIMIT_2:
-      printf("[RxPacketError] The data value exceeds the limit value!\n");
+      fprintf(stderr,"[RxPacketError] The data value exceeds the limit value!\n");
       break;
 
     case ERRNUM_ACCESS_2:
-      printf("[RxPacketError] Writing or Reading is not available to target address!\n");
+      fprintf(stderr,"[RxPacketError] Writing or Reading is not available to target address!\n");
       break;
 
     default:
-      printf("[RxPacketError] Unknown error code!\n");
+      fprintf(stderr,"[RxPacketError] Unknown error code!\n");
       break;
   }
 }
@@ -2030,7 +2030,7 @@ void setDataWrite2(int port_num, uint16_t data_length, uint16_t data_pos, uint32
       break;
 
     default:
-      printf("[Set Data Write] failed... ");
+      fprintf(stderr,"[Set Data Write] failed... ");
       break;
   }
 }
@@ -2049,7 +2049,7 @@ uint32_t getDataRead2(int port_num, uint16_t data_length, uint16_t data_pos)
       , DXL_MAKEWORD(packetData[port_num].data_read[data_pos + 2], packetData[port_num].data_read[data_pos + 3]));
 
   default:
-    printf("[Set Data Read] failed... ");
+    fprintf(stderr,"[Set Data Read] failed... ");
     return 0;
   }
 }
