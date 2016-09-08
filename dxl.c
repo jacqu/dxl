@@ -4694,7 +4694,7 @@ int dxl_status( char *port_name,
 	
 	// Display results
 	
-	printf( TERM_BRIGHT "??? %s as ID%d using protocol %d at %d bps ???\n" TERM_RESET,
+	printf( TERM_BRIGHT "*** %s as ID%d using protocol %d at %d bps ***\n" TERM_RESET,
 					dxl_reg[0].short_description,
 					devid,
 					proto,
@@ -5010,7 +5010,7 @@ int main( int argc, char *argv[] )
 	// Default action
 		
 	display_help:
-	printf( "??? dxl: a " TERM_UNDER "simple" TERM_RESET " command line interface to Dynamixel actuators ???\n" );
+	printf( "*** dxl: a " TERM_UNDER "simple" TERM_RESET " command line interface to Dynamixel actuators ***\n" );
 	printf( "Version %d.%d (jacques.gangloff@unistra.fr)\n", DXL_VERSION_MAJOR, DXL_VERSION_MINOR );
 	printf( "Usage:  dxl " TERM_BRIGHT "command" TERM_RESET TERM_DIM " [parameters]\n" TERM_RESET );
 	printf( "List of " TERM_BRIGHT "commands" TERM_RESET " and " TERM_DIM "parameters" TERM_RESET ":\n" );
