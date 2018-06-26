@@ -1,3 +1,20 @@
+Github backporting checklist
+============================
+
+26/04/2017 : OK
+24/05/2017 : OK
+23/06/2017 : OK
+11/07/2017 : OK
+18/07/2017 : ÒK
+24/07/2017 : OK
+31/10/2017 : OK
+24/11/2017 : OK
+28/11/2017 : OK
+29/11/2017 : OK
+30/11/2017 : OK
+15/05/2018 : OK
+08/06/2018 : OK
+
 * Timeout: should recover quicker to transmission failure.
 	
 	
