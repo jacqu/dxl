@@ -34,6 +34,9 @@
 #define DXL_VERSION_MAJOR								0
 #define DXL_VERSION_MINOR								6
 
+#define PROTOCOL_VERSION1               1.0
+#define PROTOCOL_VERSION2               2.0
+
 // Special IDs
 #define NOT_USED_ID         						0xFF		// 255
 #define BROADCAST_ID        						0xFE    // 254

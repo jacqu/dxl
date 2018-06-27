@@ -1996,35 +1996,35 @@ const char *getTxRxResult2(int result)
 const char *getRxPacketError2(uint8_t error)
 {
   int not_alert_error;
-  if (error & ERRBIT_ALERT)
+  if (error & ERRBIT_ALERT_2)
     return "[RxPacketError] Hardware error occurred. Check the error at Control Table (Hardware Error Status)!";
 
-  not_alert_error = error & ~ERRBIT_ALERT;
+  not_alert_error = error & ~ERRBIT_ALERT_2;
 
   switch (not_alert_error)
   {
     case 0:
       return "";
 
-    case ERRNUM_RESULT_FAIL:
+    case ERRNUM_RESULT_FAIL_2:
       return "[RxPacketError] Failed to process the instruction packet!";
 
-    case ERRNUM_INSTRUCTION:
+    case ERRNUM_INSTRUCTION_2:
       return "[RxPacketError] Undefined instruction or incorrect instruction!";
 
-    case ERRNUM_CRC:
+    case ERRNUM_CRC_2:
       return "[RxPacketError] CRC doesn't match!";
 
-    case ERRNUM_DATA_RANGE:
+    case ERRNUM_DATA_RANGE_2:
       return "[RxPacketError] The data value is out of range!";
 
-    case ERRNUM_DATA_LENGTH:
+    case ERRNUM_DATA_LENGTH_2:
       return "[RxPacketError] The data length does not match as expected!";
 
-    case ERRNUM_DATA_LIMIT:
+    case ERRNUM_DATA_LIMIT_2:
       return "[RxPacketError] The data value exceeds the limit value!";
 
-    case ERRNUM_ACCESS:
+    case ERRNUM_ACCESS_2:
       return "[RxPacketError] Writing or Reading is not available to target address!";
 
     default:
@@ -3068,9 +3068,9 @@ int groupBulkRead(int port_num, int protocol_version)
   {
     for (group_num = 0; group_num < g_used_group_num_r; group_num++)
     {
-      if (groupData[group_num].is_param_changed != True
-          && groupData[group_num].port_num == port_num
-          && groupData[group_num].protocol_version == protocol_version)
+      if (groupDataR[group_num].is_param_changed != True
+          && groupDataR[group_num].port_num == port_num
+          && groupDataR[group_num].protocol_version == protocol_version)
         break;
     }
   }
@@ -3347,9 +3347,9 @@ int groupBulkWrite(int port_num, int protocol_version)
   {
     for (group_num = 0; group_num < g_used_group_num_w; group_num++)
     {
-      if (groupData[group_num].is_param_changed != True
-          && groupData[group_num].port_num == port_num
-          && groupData[group_num].protocol_version == protocol_version)
+      if (groupDataW[group_num].is_param_changed != True
+          && groupDataW[group_num].port_num == port_num
+          && groupDataW[group_num].protocol_version == protocol_version)
         break;
     }
   }
@@ -3612,11 +3612,11 @@ int groupSyncRead(int port_num, int protocol_version, uint16_t start_address, ui
   {
     for (group_num = 0; group_num < g_used_group_num_sr; group_num++)
     {
-      if (groupData[group_num].is_param_changed != True
-          && groupData[group_num].port_num == port_num
-          && groupData[group_num].protocol_version == protocol_version
-          && groupData[group_num].start_address == start_address
-          && groupData[group_num].data_length == data_length)
+      if (groupDataSR[group_num].is_param_changed != True
+          && groupDataSR[group_num].port_num == port_num
+          && groupDataSR[group_num].protocol_version == protocol_version
+          && groupDataSR[group_num].start_address == start_address
+          && groupDataSR[group_num].data_length == data_length)
         break;
     }
   }
@@ -3895,11 +3895,11 @@ int groupSyncWrite(int port_num, int protocol_version, uint16_t start_address, u
   {
     for (group_num = 0; group_num < g_used_group_num_sw; group_num++)
     {
-      if (groupData[group_num].is_param_changed != True
-          && groupData[group_num].port_num == port_num
-          && groupData[group_num].protocol_version == protocol_version
-          && groupData[group_num].start_address == start_address
-          && groupData[group_num].data_length == data_length)
+      if (groupDataSW[group_num].is_param_changed != True
+          && groupDataSW[group_num].port_num == port_num
+          && groupDataSW[group_num].protocol_version == protocol_version
+          && groupDataSW[group_num].start_address == start_address
+          && groupDataSW[group_num].data_length == data_length)
         break;
     }
   }
@@ -4303,7 +4303,7 @@ int dxl_read( char*			port_name,
 	
 	if ( ( dxl_comm_result = getLastTxRxResult( port_num, protocol ) ) != COMM_SUCCESS )	{
 		fprintf( stderr, 	"dxl_read: error during bulk read.\n" );
-		printTxRxResult( protocol, dxl_comm_result );
+		fprintf(stderr,"%s\n", getTxRxResult(protocol, dxl_comm_result));
 		groupBulkReadClearParam( group_num );
 		return -3;
 	}
@@ -4443,7 +4443,7 @@ int dxl_write(	char*			port_name,
 	groupSyncWriteTxPacket( group_num );
 	if ( ( dxl_comm_result = getLastTxRxResult( port_num, protocol ) ) != COMM_SUCCESS )	{
 		fprintf( stderr, 	"dxl_write: error during sync write.\n" );
-		printTxRxResult( protocol, dxl_comm_result );
+		fprintf(stderr,"%s\n", getTxRxResult(protocol, dxl_comm_result));
 		groupSyncWriteClearParam( group_num );
 		return -3;
 	}
@@ -4668,13 +4668,13 @@ int dxl_status( char *port_name,
 	buf = readNByteTxRx(port_num, proto, devid, 0, buf_size);
 	if ((dxl_comm_result = getLastTxRxResult(port_num, proto)) != COMM_SUCCESS)
 	{
-		fprintf(stderr,"%s\n", getTxRxResult(PROTOCOL_VERSION1, dxl_comm_result));
+		fprintf(stderr,"%s\n", getTxRxResult(proto, dxl_comm_result));
 		closePort( port_num );
 		return -5;
 	}
 	else if ((dxl_error = getLastRxPacketError(port_num, proto)) != 0)
 	{
-		fprintf(stderr,"%s\n", getRxPacketError(PROTOCOL_VERSION1, dxl_error));
+		fprintf(stderr,"%s\n", getRxPacketError(proto, dxl_error));
 		closePort( port_num );
 		return -6;
 	}
