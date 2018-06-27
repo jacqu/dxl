@@ -3631,7 +3631,7 @@ int groupSyncRead(int port_num, int protocol_version, uint16_t start_address, ui
   groupDataSR[group_num].protocol_version = protocol_version;
   groupDataSR[group_num].data_list_length = 0;
   groupDataSR[group_num].last_result = False;
-  groupDataSR[group_num].is_param_changed = True;
+  groupDataSR[group_num].is_param_changed = False;
   groupDataSR[group_num].start_address = start_address;
   groupDataSR[group_num].data_length = data_length;
   groupDataSR[group_num].data_list = 0;
